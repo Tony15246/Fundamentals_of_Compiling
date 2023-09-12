@@ -11,7 +11,7 @@ int main() {
 	const int f[5] = {1,2+1,2*2,8/2+1};
 	const int h[][2] = {{6,6},{6,6}};
 	const int l[2][2] = {{6,6},{6,6}};
-    printf("20241032");
+    printf("20241032\n");
     int c[5] = {3,4};
     int i;
 	int g;

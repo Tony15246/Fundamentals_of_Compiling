@@ -7,7 +7,7 @@ int add_count() {
 }
 
 int main() {
-    printf("20241032");
+    printf("20241032\n");
     if (false || add_count()) {
         ;
     } else {

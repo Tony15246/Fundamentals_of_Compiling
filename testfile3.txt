@@ -7,6 +7,11 @@ void foofoofoo(int a[][2]) {
 	for (i=0;i<2;i=i+1)
 		for (j=0;j<2;j=j+1)
 			a[i][j] = a[i][j] * 2 + 1;
+	return;
+}
+void change(int arr[], int m) {
+    arr[0] = m;
+    return;
 }
 
 int main() {

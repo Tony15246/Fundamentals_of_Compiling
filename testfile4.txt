@@ -3,6 +3,14 @@ int outer2 = outer1;
 
 int main() {
 	printf("20241032\n");
+
+	for (int i = 0; i < 5; ++i)
+		;
+	if ((outer1 - outer2) * outer1 + outer2)
+		;
+	for (;;)
+		break;
+
 	const int inner11 = outer1;
 	const int inner12 = 3*3,inner13 = 6/3 +4;
 	int inner14;

@@ -31,8 +31,14 @@ int main() {
 	inner22=(inner14%inner12)*((outer1+outer2)/2);
 	if (inner11 == 1)
 		printf("%d",inner11);
-	printf("%d",inner12);
-	printf("%d",inner13);
+	if (!(outer1 == 1)) {
+
+	}
+	else {
+		printf("%d",inner12);
+	}
+	if (!(outer1 - 1))
+		printf("%d",inner13);
 	printf("%d",inner14);
 	printf("%d",inner15);
 	printf("%d",inner16);

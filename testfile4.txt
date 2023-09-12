@@ -8,8 +8,15 @@ int main() {
 		;
 	if ((outer1 - outer2) * outer1 + outer2)
 		;
+	else {
+
+	}
 	for (;;)
 		break;
+	for (int i = 0; i < 5; ++i)
+	{
+
+	}
 
 	const int inner11 = outer1;
 	const int inner12 = 3*3,inner13 = 6/3 +4;
@@ -22,7 +29,8 @@ int main() {
 	int inner18 = -+-+outer1,inner19 = -inner14,inner20 = -(-outer1);
 	int inner21 = (inner11%inner15)-outer1,inner22;
 	inner22=(inner14%inner12)*((outer1+outer2)/2);
-	printf("%d",inner11);
+	if (inner11 == 1)
+		printf("%d",inner11);
 	printf("%d",inner12);
 	printf("%d",inner13);
 	printf("%d",inner14);

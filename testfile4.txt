@@ -1,0 +1,31 @@
+int outer1;
+int outer2 = 1;
+const int outer3 = 1;
+const int outer4=1,outer5=1;
+int outer6=1,outer7=1;
+
+int main() {
+    printf("20241032");
+    int inner1 = 1 * 1;
+    int inner2 = 1 / 1;
+    int inner3 = 1 % 1;
+    int inner4 = 1 + 1 * 1;
+    int inner5 = (1 + 1 * 1) /inner4;
+    int inner6 = (inner5 + inner3 * inner4) /inner4 + inner2%inner1;
+    int inner7 = getint();
+    int inner8 = +-+inner6;
+    int inner9 = inner4 - inner3;
+    int inner10 = inner1 / (inner2 + inner3) - inner9;
+    if (!(inner4 == inner3)) {
+        printf("%d",inner10);
+    } else {}
+    printf("%d",inner1);
+    printf("%d",inner2);
+    printf("%d",inner3);
+    printf("%d",inner4);
+    printf("%d",inner5);
+    printf("%d",inner6);
+    printf("%d",inner7);
+    printf("%d",inner8);
+    return 0;
+}

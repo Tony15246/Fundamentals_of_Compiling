@@ -1,5 +1,6 @@
-const int a[5] = {1,2};
+const int a[5] = {1,2+1,2*2,8/2+1};
 const int b[][2] = {{6,6},{6,6}};
+const int e[2][2] = {{6,6},{6,6}};
 
 void change(int arr[], int m) {
     arr[0] = m;
@@ -7,9 +8,14 @@ void change(int arr[], int m) {
 }
 
 int main() {
+	const int f[5] = {1,2+1,2*2,8/2+1};
+	const int h[][2] = {{6,6},{6,6}};
+	const int l[2][2] = {{6,6},{6,6}};
     printf("20241032");
     int c[5] = {3,4};
     int i;
+	int g;
+	g = getint();
     for (i = 2; i < 5; ++i) {
         c[i] = getint();
     }
@@ -20,6 +26,15 @@ int main() {
     int d[2][2] = {{c[0],c[1]},{c[2],c[3]}};
     int x = a[3];
     int y = b[0][1];
+	const int z = (b[1][1] + a[0]) * f[1]-l[0][0]/2;
+	int m[5][5];
+	for (int j = 0; j < 5; ++j)
+	{
+		for (int k = 0; k < 5; ++k)
+		{
+			m[j][k] = j * 10 + k;
+		}
+	}
     change(c,x);
     printf("%d",c[0]);
     change(d[0],y);

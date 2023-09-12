@@ -1,0 +1,47 @@
+const int true = 1, false = 0;
+int count = 0;
+
+int add_count() {
+    count = count + 1;
+    return 1;
+}
+
+int main() {
+    printf("20241032");
+    if (false || add_count()) {
+        ;
+    } else {
+        ;
+    }
+    printf("%d",count);
+    if (true && add_count()) {
+        ;
+    }
+    printf("%d",count);
+    if (false || (false == 0 && add_count())) {
+        printf("%d",count);
+    }
+    if (true != 1) {
+        ;
+    } else {
+        printf("%d",true);
+    }
+    if (!false) {
+        printf("%d",false);
+    }
+    if (true == (true >= false)) {
+        printf("%d",true);
+    }
+    if (true > false) {
+        printf("%d",true);
+    }
+    if (true < false) {
+        ;
+    } else {
+        printf("%d",false);
+    }
+    if (false <= true) {
+        printf("%d",true);
+    }
+    return 0;
+}

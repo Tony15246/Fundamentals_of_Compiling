@@ -3,7 +3,10 @@ int foofoo(int x) {
 	return (x+1)*2;
 }
 void foofoofoo(int a[][2]) {
-	a[0][0] = a[0][0] + 1;
+	int i, j;
+	for (i=0;i<2;i=i+1)
+		for (j=0;j<2;j=j+1)
+			a[i][j] = a[i][j] * 2 + 1;
 }
 
 int main() {

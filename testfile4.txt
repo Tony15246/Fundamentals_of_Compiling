@@ -1,50 +1,74 @@
 const int outer1 = 1;
 int outer2 = outer1;
 
+void foo() {
+    return;
+}
+int sub(int a) {
+    return a - 1;
+}
+int divi(int a, int b) {
+    return a / b;
+}
+
 int main() {
-	printf("20241032\n");
+    printf("20241032\n");
 
-	for (int i = 0; i < 5; ++i)
-		;
-	if ((outer1 - outer2) * outer1 + outer2)
-		;
-	else {
+    for (int i = 0; i < 5; ++i)
+        ;
+    if ((outer1 - outer2) * outer1 + outer2)
+        ;
+    else {
 
-	}
-	for (;;)
-		break;
-	for (int i = 0; i < 5; ++i)
-	{
+    }
+    for (;;)
+        break;
+    for (int i = 0; i < 5; ++i)
+    {
 
-	}
+    }
+    int inner1 = (1 + 1 * 1);
+    int inner2 = inner1;
+    int inner3 = 1;
+    int inner4 = +-inner3;
+    int inner5 = 3 * 2;
+    int inner6 = 6 / 2;
+    int inner7 = -4 * inner5;
+    int inner8 = sub(inner4) % 2;
+    int inner9 = 2 * (4 + divi(inner8,inner2));
+    int inner10 = -inner3 -inner5;
+    const int inner11 = outer1;
+    const int inner12 = 3*3,inner13 = 6/3 +4;
+    int inner14;
+    inner14 = inner11;
+    int inner15 = outer2 * 3;
+    int inner16,inner17;
+    inner16 = outer2 + outer1;
+    inner17 = getint();
+    int inner18 = -+-+outer1,inner19 = -inner14,inner20 = -(-outer1);
+    int inner21 = (inner11%inner15)-outer1,inner22;
+    inner22=(inner14%inner12)*((outer1+outer2)/2);
+    if (inner11 == 1)
+        printf("%d",inner11);
+    if (!(outer1 == 1)) {
 
-	const int inner11 = outer1;
-	const int inner12 = 3*3,inner13 = 6/3 +4;
-	int inner14;
-	inner14 = inner11;
-	int inner15 = outer2 * 3;
-	int inner16,inner17;
-	inner16 = outer2 + outer1;
-	inner17 = getint();
-	int inner18 = -+-+outer1,inner19 = -inner14,inner20 = -(-outer1);
-	int inner21 = (inner11%inner15)-outer1,inner22;
-	inner22=(inner14%inner12)*((outer1+outer2)/2);
-	if (inner11 == 1)
-		printf("%d",inner11);
-	if (!(outer1 == 1)) {
-
-	}
-	else {
-		printf("%d",inner12);
-	}
-	if (!(outer1 - 1))
-		printf("%d",inner13);
-	printf("%d",inner14);
-	printf("%d",inner15);
-	printf("%d",inner16);
-	printf("%d",inner17);
-	printf("%d",inner18);
-	printf("%d",inner19);
-	printf("%d",inner20);
-	return 0;
+    }
+    else {
+        printf("%d",inner12);
+    }
+    if (!(outer1 - 1))
+        printf("%d",inner13);
+    if (outer1 + outer2 > outer1 * outer2)
+        printf("%d",inner14);
+    if (outer1 - outer2 == 0)
+        printf("%d",inner15);
+    if (!(outer1 + outer2 != 2))
+        printf("%d",inner16);
+    if (outer1)
+        printf("%d",inner17);
+    if ((1 % 2) > (1 / 3))
+        printf("%d",inner18);
+    printf("%d",inner19);
+    printf("%d",inner20);
+    return 0;
 }

@@ -1,0 +1,21 @@
+int main() {
+	printf("20241032\n");
+	int i;
+	for (i = 0; i < 1; i=i+1)
+		;
+	for (; i < 1; i=i+1)
+		;
+	for (i = 0; i < 1;)
+		break;
+	for (i = 0;; i=i+1)
+		break;
+	for (;; i=i+1)
+		break;
+	for (;i < 1;)
+		break;
+	for (i = 0;;)
+		break;
+	for (;;)
+		break;
+	return 0;
+}

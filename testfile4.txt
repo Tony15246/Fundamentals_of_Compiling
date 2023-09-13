@@ -27,6 +27,19 @@ int main() {
 	{
 
 	}
+	int j = 1;
+	if (j != 1)
+		;
+	for (int i = 0; i < 1; ++i)
+	{
+		printf("%d",i);
+	}
+	if (j > 1)
+		;
+	if (j <= 1)
+		;
+	if (j >= 1)
+		;
 	int inner1 = (1 + 1 * 1);
 	int inner2 = inner1;
 	int inner3 = 1;
@@ -69,6 +82,5 @@ int main() {
 	if ((1 % 2) > (1 / 3))
 		printf("%d",inner18);
 	printf("%d",inner19);
-	printf("%d",inner20);
 	return 0;
 }

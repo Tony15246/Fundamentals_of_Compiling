@@ -125,8 +125,8 @@ public class Compiler {
                                 c = line.charAt(i);
                                 if (c == '*') {
                                     i++;
-//                                    if (i >= line.length())
-//                                        break;
+                                    if (i >= line.length())
+                                        break;
                                     c = line.charAt(i);
                                     if (c == '/') {
                                         isComment = false;
@@ -150,14 +150,10 @@ public class Compiler {
                     else if (c == '\"' || c == '\'' ) {
                         token.append(c);
                         i++;
-//                        if (i >= line.length())
-//                            break;
                         c = line.charAt(i);
                         while (c != '\"' && c != '\'') {
                             token.append(c);
                             i++;
-//                            if (i >= line.length())
-//                                break;
                             c = line.charAt(i);
                         }
                         token.append(c);
@@ -171,8 +167,6 @@ public class Compiler {
                     else if (c == '!' || c == '&' || c == '|' || c == '<' || c == '>' || c == '=') {
                         token.append(c);
                         i++;
-//                        if (i >= line.length())
-//                            break;
                         c = line.charAt(i);
                         token.append(c);
                         if (symbolMap.containsKey(token.toString())) {

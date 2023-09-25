@@ -20,13 +20,16 @@ public class Lexer {
         public String symbol;
         public String value;
         public int lineNum;
+        public TokenType type;
         public Token(String symbol, String value, int lineNum) {
+            this.type = TokenType.valueOf(symbol);
             this.symbol = symbol;
             this.value = value;
             this.lineNum = lineNum;
         }
 
         public Token(String symbol, int value, int lineNum) {
+            this.type = TokenType.valueOf(symbol);
             this.symbol = symbol;
             this.value = String.valueOf(value);
             this.lineNum = lineNum;

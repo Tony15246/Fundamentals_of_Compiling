@@ -816,6 +816,7 @@ public class GrammarParser {
                     throw new RuntimeException("UnaryExp error");
                 }
             }
+            next();
         } else {
             GrammarUnit primaryExp = PrimaryExp();
             unaryExp.addChild(primaryExp);

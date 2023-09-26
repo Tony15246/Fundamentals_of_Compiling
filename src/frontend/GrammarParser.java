@@ -66,7 +66,7 @@ public class GrammarParser {
                 result.add(grammarUnit.toString());
             }
         } else if (root instanceof TerminalSymbol terminalSymbol) {
-            result.add(terminalSymbol.getToken().toString());
+            result.add(terminalSymbol.toString());
         }
     }
 

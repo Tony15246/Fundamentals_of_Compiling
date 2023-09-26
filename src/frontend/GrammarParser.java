@@ -288,7 +288,7 @@ public class GrammarParser {
         GrammarUnit funcDef = new GrammarUnit(GrammarUnit.GrammarUnitType.FuncDef);
         GrammarUnit funcType = FuncType();
         funcDef.addChild(funcType);
-        if (next().type == Lexer.Token.TokenType.IDENFR) {
+        if (now().type == Lexer.Token.TokenType.IDENFR) {
             TerminalSymbol idenfr = new TerminalSymbol(now());
             funcDef.addChild(idenfr);
         } else {
@@ -306,7 +306,7 @@ public class GrammarParser {
         if (now().type == Lexer.Token.TokenType.INTTK) {
             GrammarUnit funcFParams = FuncFParams();
             funcDef.addChild(funcFParams);
-            if (next().type == Lexer.Token.TokenType.RPARENT) {
+            if (now().type == Lexer.Token.TokenType.RPARENT) {
                 TerminalSymbol rParent = new TerminalSymbol(now());
                 funcDef.addChild(rParent);
             } else {

@@ -1,6 +1,6 @@
 .idea
 out
-testfile.txt
-output.txt
+testfile*.txt
+output*.txt
 *.zip
 Fundamentals_of_Compiling.iml

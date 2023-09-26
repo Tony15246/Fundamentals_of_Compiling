@@ -37,6 +37,17 @@ public class GrammarParser {
         return tokens.get(index + offset);
     }
 
+    private boolean isLVal() {
+        int i = 0;
+        while (peek(i).type != Lexer.Token.TokenType.SEMICN) {
+            if (peek(i).type == Lexer.Token.TokenType.ASSIGN) {
+                return true;
+            }
+            i++;
+        }
+        return false;
+    }
+
     private GrammarUnit CompUnit() {
         next();
         GrammarUnit compUnit = new GrammarUnit(GrammarUnit.GrammarUnitType.CompUnit);
@@ -114,6 +125,7 @@ public class GrammarParser {
         } else {
             //error
         }
+        next();
         while (now().type == Lexer.Token.TokenType.LBRACK) {
             TerminalSymbol lBrack = new TerminalSymbol(now());
             constDef.addChild(lBrack);
@@ -175,11 +187,68 @@ public class GrammarParser {
     }
     private GrammarUnit VarDef() {
         GrammarUnit varDef = new GrammarUnit(GrammarUnit.GrammarUnitType.VarDef);
+        if (now().type == Lexer.Token.TokenType.IDENFR) {
+            TerminalSymbol idenfr = new TerminalSymbol(now());
+            varDef.addChild(idenfr);
+        } else {
+            //error
+        }
+        next();
+        while (now().type == Lexer.Token.TokenType.LBRACK) {
+            TerminalSymbol lBrack = new TerminalSymbol(now());
+            varDef.addChild(lBrack);
+            next();
+            GrammarUnit constExp = ConstExp();
+            varDef.addChild(constExp);
+            if (now().type == Lexer.Token.TokenType.RBRACK) {
+                TerminalSymbol rBrack = new TerminalSymbol(now());
+                varDef.addChild(rBrack);
+                next();
+            } else {
+                //error
+            }
+        }
+        if (now().type == Lexer.Token.TokenType.ASSIGN) {
+            TerminalSymbol assign = new TerminalSymbol(now());
+            varDef.addChild(assign);
+            next();
+            GrammarUnit initVal = InitVal();
+            varDef.addChild(initVal);
+        }
         return varDef;
     }
 
     private GrammarUnit InitVal() {
         GrammarUnit initVal = new GrammarUnit(GrammarUnit.GrammarUnitType.InitVal);
+        if (now().type == Lexer.Token.TokenType.LBRACE) {
+            TerminalSymbol lBrace = new TerminalSymbol(now());
+            initVal.addChild(lBrace);
+            if (next().type == Lexer.Token.TokenType.RBRACE) {
+                TerminalSymbol rBrace = new TerminalSymbol(now());
+                initVal.addChild(rBrace);
+                next();
+            } else {
+                GrammarUnit initValNext = InitVal();
+                initVal.addChild(initValNext);
+                while (now().type == Lexer.Token.TokenType.COMMA) {
+                    TerminalSymbol comma = new TerminalSymbol(now());
+                    initVal.addChild(comma);
+                    next();
+                    initValNext = InitVal();
+                    initVal.addChild(initValNext);
+                }
+                if (now().type == Lexer.Token.TokenType.RBRACE) {
+                    TerminalSymbol rBrace = new TerminalSymbol(now());
+                    initVal.addChild(rBrace);
+                    next();
+                } else {
+                    //error
+                }
+            }
+        } else {
+            GrammarUnit exp = Exp();
+            initVal.addChild(exp);
+        }
         return initVal;
     }
 
@@ -255,66 +324,454 @@ public class GrammarParser {
 
     private GrammarUnit FuncType() {
         GrammarUnit funcType = new GrammarUnit(GrammarUnit.GrammarUnitType.FuncType);
+        if (now().type == Lexer.Token.TokenType.INTTK) {
+            TerminalSymbol inttk = new TerminalSymbol(now());
+            funcType.addChild(inttk);
+            next();
+        } else if (now().type == Lexer.Token.TokenType.VOIDTK) {
+            TerminalSymbol voidtk = new TerminalSymbol(now());
+            funcType.addChild(voidtk);
+            next();
+        } else {
+            //error
+        }
         return funcType;
     }
 
     private GrammarUnit FuncFParams() {
         GrammarUnit funcFParams = new GrammarUnit(GrammarUnit.GrammarUnitType.FuncFParams);
+        GrammarUnit funcFParam = FuncFParam();
+        funcFParams.addChild(funcFParam);
+        while (now().type == Lexer.Token.TokenType.COMMA) {
+            TerminalSymbol comma = new TerminalSymbol(now());
+            funcFParams.addChild(comma);
+            next();
+            funcFParam = FuncFParam();
+            funcFParams.addChild(funcFParam);
+        }
         return funcFParams;
     }
 
     private GrammarUnit FuncFParam() {
         GrammarUnit funcFParam = new GrammarUnit(GrammarUnit.GrammarUnitType.FuncFParam);
+        GrammarUnit bType = BType();
+        funcFParam.addChild(bType);
+        if (now().type == Lexer.Token.TokenType.IDENFR) {
+            TerminalSymbol idenfr = new TerminalSymbol(now());
+            funcFParam.addChild(idenfr);
+        } else {
+            //error
+        }
+        if (next().type == Lexer.Token.TokenType.LBRACK) {
+            TerminalSymbol lBrack = new TerminalSymbol(now());
+            funcFParam.addChild(lBrack);
+            if (next().type == Lexer.Token.TokenType.RBRACK) {
+                TerminalSymbol rBrack = new TerminalSymbol(now());
+                funcFParam.addChild(rBrack);
+            } else {
+                //error
+            }
+            next();
+            while (now().type == Lexer.Token.TokenType.LBRACK) {
+                lBrack = new TerminalSymbol(now());
+                funcFParam.addChild(lBrack);
+                next();
+                GrammarUnit constExp = ConstExp();
+                funcFParam.addChild(constExp);
+                if (now().type == Lexer.Token.TokenType.RBRACK) {
+                    TerminalSymbol rBrack = new TerminalSymbol(now());
+                    funcFParam.addChild(rBrack);
+                    next();
+                } else {
+                    //error
+                }
+            }
+        }
         return funcFParam;
     }
 
     private GrammarUnit Block() {
         GrammarUnit block = new GrammarUnit(GrammarUnit.GrammarUnitType.Block);
+        if (now().type == Lexer.Token.TokenType.LBRACE) {
+            TerminalSymbol lBrace = new TerminalSymbol(now());
+            block.addChild(lBrace);
+        } else {
+            //error
+        }
+        while (next().type != Lexer.Token.TokenType.RBRACE) {
+            GrammarUnit blockItem = BlockItem();
+            block.addChild(blockItem);
+        }
+        if (now().type == Lexer.Token.TokenType.RBRACE) {
+            TerminalSymbol rBrace = new TerminalSymbol(now());
+            block.addChild(rBrace);
+            next();
+        } else {
+            //error
+        }
         return block;
     }
 
     private GrammarUnit Stmt() {
         GrammarUnit stmt = new GrammarUnit(GrammarUnit.GrammarUnitType.Stmt);
+        if (now().type == Lexer.Token.TokenType.IFTK) {
+            TerminalSymbol iftk = new TerminalSymbol(now());
+            stmt.addChild(iftk);
+            if (next().type == Lexer.Token.TokenType.LPARENT) {
+                TerminalSymbol lParent = new TerminalSymbol(now());
+                stmt.addChild(lParent);
+            } else {
+                //error
+            }
+            next();
+            GrammarUnit cond = Cond();
+            stmt.addChild(cond);
+            if (now().type == Lexer.Token.TokenType.RPARENT) {
+                TerminalSymbol rParent = new TerminalSymbol(now());
+                stmt.addChild(rParent);
+            } else {
+                //error
+            }
+            next();
+            GrammarUnit stmt1 = Stmt();
+            stmt.addChild(stmt1);
+            if (now().type == Lexer.Token.TokenType.ELSETK) {
+                TerminalSymbol elsetk = new TerminalSymbol(now());
+                stmt.addChild(elsetk);
+                next();
+                GrammarUnit stmt2 = Stmt();
+                stmt.addChild(stmt2);
+            }
+        } else if (now().type == Lexer.Token.TokenType.FORTK) {
+            TerminalSymbol fortk = new TerminalSymbol(now());
+            stmt.addChild(fortk);
+            if (next().type == Lexer.Token.TokenType.LPARENT) {
+                TerminalSymbol lParent = new TerminalSymbol(now());
+                stmt.addChild(lParent);
+            } else {
+                //error
+            }
+            if (next().type == Lexer.Token.TokenType.SEMICN) {
+                TerminalSymbol semicn = new TerminalSymbol(now());
+                stmt.addChild(semicn);
+            } else {
+                GrammarUnit forStmt1 = ForStmt();
+                stmt.addChild(forStmt1);
+                if (now().type == Lexer.Token.TokenType.SEMICN) {
+                    TerminalSymbol semicn = new TerminalSymbol(now());
+                    stmt.addChild(semicn);
+                } else {
+                    //error
+                }
+            }
+            if (next().type == Lexer.Token.TokenType.SEMICN) {
+                TerminalSymbol semicn = new TerminalSymbol(now());
+                stmt.addChild(semicn);
+            } else {
+                GrammarUnit cond = Cond();
+                stmt.addChild(cond);
+                if (now().type == Lexer.Token.TokenType.SEMICN) {
+                    TerminalSymbol semicn = new TerminalSymbol(now());
+                    stmt.addChild(semicn);
+                } else {
+                    //error
+                }
+            }
+            if (next().type == Lexer.Token.TokenType.RPARENT) {
+                TerminalSymbol rParent = new TerminalSymbol(now());
+                stmt.addChild(rParent);
+            } else {
+                GrammarUnit forStmt2 = ForStmt();
+                stmt.addChild(forStmt2);
+                if (now().type == Lexer.Token.TokenType.RPARENT) {
+                    TerminalSymbol rParent = new TerminalSymbol(now());
+                    stmt.addChild(rParent);
+                } else {
+                    //error
+                }
+            }
+            next();
+            GrammarUnit stmt1 = Stmt();
+            stmt.addChild(stmt1);
+        } else if (now().type == Lexer.Token.TokenType.BREAKTK) {
+            TerminalSymbol breaktk = new TerminalSymbol(now());
+            stmt.addChild(breaktk);
+            if (next().type == Lexer.Token.TokenType.SEMICN) {
+                TerminalSymbol semicn = new TerminalSymbol(now());
+                stmt.addChild(semicn);
+                next();
+            } else {
+                //error
+            }
+        } else if (now().type == Lexer.Token.TokenType.CONTINUETK) {
+            TerminalSymbol continuetk = new TerminalSymbol(now());
+            stmt.addChild(continuetk);
+            if (next().type == Lexer.Token.TokenType.SEMICN) {
+                TerminalSymbol semicn = new TerminalSymbol(now());
+                stmt.addChild(semicn);
+                next();
+            } else {
+                //error
+            }
+        } else if (now().type == Lexer.Token.TokenType.RETURNTK) {
+            TerminalSymbol returntk = new TerminalSymbol(now());
+            stmt.addChild(returntk);
+            if (next().type == Lexer.Token.TokenType.SEMICN) {
+                TerminalSymbol semicn = new TerminalSymbol(now());
+                stmt.addChild(semicn);
+                next();
+            } else {
+                GrammarUnit exp = Exp();
+                stmt.addChild(exp);
+                if (now().type == Lexer.Token.TokenType.SEMICN) {
+                    TerminalSymbol semicn = new TerminalSymbol(now());
+                    stmt.addChild(semicn);
+                    next();
+                } else {
+                    //error
+                }
+            }
+        } else if (now().type == Lexer.Token.TokenType.PRINTFTK) {
+            TerminalSymbol printftk = new TerminalSymbol(now());
+            stmt.addChild(printftk);
+            if (next().type == Lexer.Token.TokenType.LPARENT) {
+                TerminalSymbol lParent = new TerminalSymbol(now());
+                stmt.addChild(lParent);
+            } else {
+                //error
+            }
+            if (next().type == Lexer.Token.TokenType.STRCON) {
+                TerminalSymbol strcon = new TerminalSymbol(now());
+                stmt.addChild(strcon);
+            } else {
+                //error
+            }
+            next();
+            while (now().type == Lexer.Token.TokenType.COMMA) {
+                TerminalSymbol comma = new TerminalSymbol(now());
+                stmt.addChild(comma);
+                next();
+                GrammarUnit exp = Exp();
+                stmt.addChild(exp);
+            }
+            if (now().type == Lexer.Token.TokenType.RPARENT) {
+                TerminalSymbol rParent = new TerminalSymbol(now());
+                stmt.addChild(rParent);
+            } else {
+                //error
+            }
+            if (next().type == Lexer.Token.TokenType.SEMICN) {
+                TerminalSymbol semicn = new TerminalSymbol(now());
+                stmt.addChild(semicn);
+                next();
+            } else {
+                //error
+            }
+        } else if (now().type == Lexer.Token.TokenType.LBRACE) {
+            GrammarUnit block = Block();
+            stmt.addChild(block);
+        } else if (isLVal()) {
+            GrammarUnit lVal = LVal();
+            stmt.addChild(lVal);
+            if (now().type == Lexer.Token.TokenType.ASSIGN) {
+                TerminalSymbol assign = new TerminalSymbol(now());
+                stmt.addChild(assign);
+            } else {
+                //error
+            }
+            if (next().type == Lexer.Token.TokenType.GETINTTK) {
+                TerminalSymbol getinttk = new TerminalSymbol(now());
+                stmt.addChild(getinttk);
+                if (next().type == Lexer.Token.TokenType.LPARENT) {
+                    TerminalSymbol lParent = new TerminalSymbol(now());
+                    stmt.addChild(lParent);
+                } else {
+                    //error
+                }
+                if (next().type == Lexer.Token.TokenType.RPARENT) {
+                    TerminalSymbol rParent = new TerminalSymbol(now());
+                    stmt.addChild(rParent);
+                } else {
+                    //error
+                }
+                if (next().type == Lexer.Token.TokenType.SEMICN) {
+                    TerminalSymbol semicn = new TerminalSymbol(now());
+                    stmt.addChild(semicn);
+                    next();
+                } else {
+                    //error
+                }
+            } else {
+                GrammarUnit exp = Exp();
+                stmt.addChild(exp);
+                if (now().type == Lexer.Token.TokenType.SEMICN) {
+                    TerminalSymbol semicn = new TerminalSymbol(now());
+                    stmt.addChild(semicn);
+                    next();
+                } else {
+                    //error
+                }
+            }
+        } else {
+            if (now().type == Lexer.Token.TokenType.SEMICN) {
+                TerminalSymbol semicn = new TerminalSymbol(now());
+                stmt.addChild(semicn);
+                next();
+            } else {
+                GrammarUnit exp = Exp();
+                stmt.addChild(exp);
+                if (now().type == Lexer.Token.TokenType.SEMICN) {
+                    TerminalSymbol semicn = new TerminalSymbol(now());
+                    stmt.addChild(semicn);
+                    next();
+                } else {
+                    //error
+                }
+            }
+        }
         return stmt;
     }
 
     private GrammarUnit ForStmt() {
         GrammarUnit forStmt = new GrammarUnit(GrammarUnit.GrammarUnitType.ForStmt);
+        GrammarUnit lVal = LVal();
+        forStmt.addChild(lVal);
+        if (now().type == Lexer.Token.TokenType.ASSIGN) {
+            TerminalSymbol assign = new TerminalSymbol(now());
+            forStmt.addChild(assign);
+        } else {
+            //error
+        }
+        next();
+        GrammarUnit exp = Exp();
+        forStmt.addChild(exp);
         return forStmt;
     }
 
     private GrammarUnit Exp() {
         GrammarUnit exp = new GrammarUnit(GrammarUnit.GrammarUnitType.Exp);
+        GrammarUnit addExp = AddExp();
+        exp.addChild(addExp);
         return exp;
     }
 
     private GrammarUnit Cond() {
         GrammarUnit cond = new GrammarUnit(GrammarUnit.GrammarUnitType.Cond);
+        GrammarUnit lOrExp = LOrExp();
+        cond.addChild(lOrExp);
         return cond;
     }
 
     private GrammarUnit LVal() {
         GrammarUnit lVal = new GrammarUnit(GrammarUnit.GrammarUnitType.LVal);
+        if (now().type == Lexer.Token.TokenType.IDENFR) {
+            TerminalSymbol idenfr = new TerminalSymbol(now());
+            lVal.addChild(idenfr);
+        } else {
+            //error
+        }
+        while (next().type == Lexer.Token.TokenType.LBRACK) {
+            TerminalSymbol lBrack = new TerminalSymbol(now());
+            lVal.addChild(lBrack);
+            next();
+            GrammarUnit exp = Exp();
+            lVal.addChild(exp);
+            if (now().type == Lexer.Token.TokenType.RBRACK) {
+                TerminalSymbol rBrack = new TerminalSymbol(now());
+                lVal.addChild(rBrack);
+            } else {
+                //error
+            }
+            next();
+        }
         return lVal;
     }
 
     private GrammarUnit PrimaryExp() {
         GrammarUnit primaryExp = new GrammarUnit(GrammarUnit.GrammarUnitType.PrimaryExp);
+        if (now().type == Lexer.Token.TokenType.LPARENT) {
+            TerminalSymbol lParent = new TerminalSymbol(now());
+            primaryExp.addChild(lParent);
+            next();
+            GrammarUnit exp = Exp();
+            primaryExp.addChild(exp);
+            if (now().type == Lexer.Token.TokenType.RPARENT) {
+                TerminalSymbol rParent = new TerminalSymbol(now());
+                primaryExp.addChild(rParent);
+            } else {
+                //error
+            }
+        } else if (now().type == Lexer.Token.TokenType.INTCON) {
+            GrammarUnit number = Number();
+            primaryExp.addChild(number);
+        } else {
+            GrammarUnit lVal = LVal();
+            primaryExp.addChild(lVal);
+        }
         return primaryExp;
     }
 
     private GrammarUnit Number() {
         GrammarUnit number = new GrammarUnit(GrammarUnit.GrammarUnitType.Number);
+        if (now().type == Lexer.Token.TokenType.INTCON) {
+            TerminalSymbol intcon = new TerminalSymbol(now());
+            number.addChild(intcon);
+            next();
+        } else {
+            //error
+        }
         return number;
     }
 
     private GrammarUnit UnaryExp() {
         GrammarUnit unaryExp = new GrammarUnit(GrammarUnit.GrammarUnitType.UnaryExp);
+        if (now().type == Lexer.Token.TokenType.PLUS || now().type == Lexer.Token.TokenType.MINU || now().type == Lexer.Token.TokenType.NOT) {
+            GrammarUnit unaryOp = UnaryOp();
+            unaryExp.addChild(unaryOp);
+            GrammarUnit unaryExpNext = UnaryExp();
+            unaryExp.addChild(unaryExpNext);
+        } else if (now().type == Lexer.Token.TokenType.IDENFR && peek().type == Lexer.Token.TokenType.LPARENT) {
+            TerminalSymbol idenfr = new TerminalSymbol(now());
+            unaryExp.addChild(idenfr);
+            TerminalSymbol lParent = new TerminalSymbol(next());
+            unaryExp.addChild(lParent);
+            if (next().type == Lexer.Token.TokenType.RPARENT) {
+                TerminalSymbol rParent = new TerminalSymbol(now());
+                unaryExp.addChild(rParent);
+            } else {
+                GrammarUnit funcRParams = FuncRParams();
+                unaryExp.addChild(funcRParams);
+                if (now().type == Lexer.Token.TokenType.RPARENT) {
+                    TerminalSymbol rParent = new TerminalSymbol(now());
+                    unaryExp.addChild(rParent);
+                } else {
+                    //error
+                }
+            }
+        } else {
+            GrammarUnit primaryExp = PrimaryExp();
+            unaryExp.addChild(primaryExp);
+        }
         return unaryExp;
     }
 
     private GrammarUnit UnaryOp() {
         GrammarUnit unaryOp = new GrammarUnit(GrammarUnit.GrammarUnitType.UnaryOp);
+        if (now().type == Lexer.Token.TokenType.PLUS) {
+            TerminalSymbol plus = new TerminalSymbol(now());
+            unaryOp.addChild(plus);
+            next();
+        } else if (now().type == Lexer.Token.TokenType.MINU) {
+            TerminalSymbol minu = new TerminalSymbol(now());
+            unaryOp.addChild(minu);
+            next();
+        } else if (now().type == Lexer.Token.TokenType.NOT) {
+            TerminalSymbol not = new TerminalSymbol(now());
+            unaryOp.addChild(not);
+            next();
+        } else {
+            //error
+        }
         return unaryOp;
     }
 
@@ -360,6 +817,13 @@ public class GrammarParser {
 
     private GrammarUnit BlockItem() {
         GrammarUnit blockItem = new GrammarUnit(GrammarUnit.GrammarUnitType.BlockItem);
+        if (now().type == Lexer.Token.TokenType.INTTK || now().type == Lexer.Token.TokenType.CONSTTK) {
+            GrammarUnit decl = Decl();
+            blockItem.addChild(decl);
+        } else {
+            GrammarUnit stmt = Stmt();
+            blockItem.addChild(stmt);
+        }
         return blockItem;
     }
 

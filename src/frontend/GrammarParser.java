@@ -303,7 +303,10 @@ public class GrammarParser {
             throw new RuntimeException("FuncDef error");
         }
         next();
-        if (now().type == Lexer.Token.TokenType.INTTK) {
+        if (now().type == Lexer.Token.TokenType.RPARENT) {
+            TerminalSymbol rParent = new TerminalSymbol(now());
+            funcDef.addChild(rParent);
+        } else {
             GrammarUnit funcFParams = FuncFParams();
             funcDef.addChild(funcFParams);
             if (now().type == Lexer.Token.TokenType.RPARENT) {
@@ -313,16 +316,10 @@ public class GrammarParser {
                 //error
                 throw new RuntimeException("FuncDef error");
             }
-            next();
-            GrammarUnit block = Block();
-            funcDef.addChild(block);
-        } else if (now().type == Lexer.Token.TokenType.LBRACE) {
-            GrammarUnit block = Block();
-            funcDef.addChild(block);
-        } else {
-            //error
-            throw new RuntimeException("FuncDef error");
         }
+        next();
+        GrammarUnit block = Block();
+        funcDef.addChild(block);
         return funcDef;
     }
 

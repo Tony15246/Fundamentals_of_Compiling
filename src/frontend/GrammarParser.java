@@ -763,6 +763,7 @@ public class GrammarParser {
             if (now().type == Lexer.Token.TokenType.RPARENT) {
                 TerminalSymbol rParent = new TerminalSymbol(now());
                 primaryExp.addChild(rParent);
+                next();
             } else {
                 //error
                 throw new RuntimeException("PrimaryExp error");
@@ -805,18 +806,19 @@ public class GrammarParser {
             if (next().type == Lexer.Token.TokenType.RPARENT) {
                 TerminalSymbol rParent = new TerminalSymbol(now());
                 unaryExp.addChild(rParent);
+                next();
             } else {
                 GrammarUnit funcRParams = FuncRParams();
                 unaryExp.addChild(funcRParams);
                 if (now().type == Lexer.Token.TokenType.RPARENT) {
                     TerminalSymbol rParent = new TerminalSymbol(now());
                     unaryExp.addChild(rParent);
+                    next();
                 } else {
                     //error
                     throw new RuntimeException("UnaryExp error");
                 }
             }
-            next();
         } else {
             GrammarUnit primaryExp = PrimaryExp();
             unaryExp.addChild(primaryExp);

@@ -79,6 +79,7 @@ public class Lexer {
             RBRACK,
             LBRACE,
             RBRACE,
+            END,
         }
     }
 

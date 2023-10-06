@@ -121,7 +121,7 @@ public class Lexer {
         int num;
         while (getChar()) {
             //region 处理单词
-            if (isLetter(c)) {
+            if (isLetterOrUnderline(c)) {
                 while (isLetterOrDigitOrUnderline(c)) {
                     token.append(c);
                     getChar();
@@ -161,6 +161,9 @@ public class Lexer {
                             getChar();
                             if (c == '/') {
                                 break;
+                            }
+                            else {
+                                br.reset();
                             }
                         }
                     }
@@ -354,11 +357,11 @@ public class Lexer {
         return c >= '0' && c <= '9';
     }
 
-    private boolean isLetter(char c) {
-        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    private boolean isLetterOrUnderline(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_');
     }
 
     private boolean isLetterOrDigitOrUnderline(char c) {
-        return isDigit(c) || isLetter(c) || c == '_';
+        return isDigit(c) || isLetterOrUnderline(c);
     }
 }

@@ -7,7 +7,7 @@ public class Compiler {
     public static void main(String[] args) {
         try {
             BufferedReader br = new BufferedReader(new FileReader("testfile.txt"));
-            FileWriter fw = new FileWriter("output.txt",true);
+            FileWriter fw = new FileWriter("output.txt",false);
             Lexer lexer = new Lexer(br);
             ArrayList<Lexer.Token> tokens = lexer.getSymbol();
             for (Lexer.Token token : tokens) {

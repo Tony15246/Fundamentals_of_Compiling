@@ -41,7 +41,7 @@ public class GrammarParser {
 
     private Lexer.Token peek(Integer offset) {
         if (index + offset >= tokens.size()) {
-            return new Lexer.Token("error", "error", -1);
+            return new Lexer.Token("END", "END", -1);
         }
         return tokens.get(index + offset);
     }

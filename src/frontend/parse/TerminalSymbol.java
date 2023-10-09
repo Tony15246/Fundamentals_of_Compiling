@@ -1,4 +1,6 @@
-package frontend;
+package frontend.parse;
+
+import frontend.Lexer;
 
 import java.util.ArrayList;
 

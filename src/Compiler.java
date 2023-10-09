@@ -1,8 +1,7 @@
 import frontend.Lexer;
-import frontend.GrammarParser;
+import frontend.parse.GrammarParser;
 
 import java.io.*;
-import java.util.ArrayList;
 
 public class Compiler {
     public static void main(String[] args) {

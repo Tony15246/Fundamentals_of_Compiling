@@ -34,6 +34,10 @@ public class TerminalSymbol implements Node {
         return this.token;
     }
 
+    public void setCorrect(Boolean correct) {
+        this.correct = correct;
+    }
+
     @Override
     public Boolean isCorrect() {
         return correct;

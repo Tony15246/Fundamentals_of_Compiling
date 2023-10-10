@@ -1,8 +1,8 @@
 package frontend.error;
 
 public class Error {
-    private final int line;
-    private final String type;
+    public final int line;
+    public final String type;
 
     public Error(int line, String type) {
         this.line = line;

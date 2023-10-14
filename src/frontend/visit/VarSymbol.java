@@ -1,10 +1,12 @@
 package frontend.visit;
 
+import frontend.Lexer;
+
 public class VarSymbol extends Symbol {
     private final boolean isConst;
 
-    public VarSymbol(int id, SymbolTable table, String token, boolean isConst) {
-        super(id, table, token);
+    public VarSymbol(SymbolTable table, Lexer.Token token, boolean isConst) {
+        super(table, token);
         this.isConst = isConst;
     }
 

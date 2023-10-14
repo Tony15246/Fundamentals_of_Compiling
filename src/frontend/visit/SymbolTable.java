@@ -30,7 +30,8 @@ public class SymbolTable {
     }
 
     public void addSymbol(Symbol symbol) {
-        this.symbolMap.put(symbol.getToken(), symbol);
+        symbol.setId(this.symbolMap.size());
+        this.symbolMap.put(symbol.getToken().value, symbol);
     }
 
     public Symbol getSymbol(String token) {

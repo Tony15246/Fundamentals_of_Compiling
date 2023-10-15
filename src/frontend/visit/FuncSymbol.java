@@ -22,6 +22,10 @@ public class FuncSymbol extends Symbol{
         paramList.add(param);
     }
 
+    public void addParam(ArrayList<Symbol> paramList) {
+        this.paramList.addAll(paramList);
+    }
+
     public ArrayList<Symbol> getParamList() {
         return paramList;
     }

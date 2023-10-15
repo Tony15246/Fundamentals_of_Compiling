@@ -11,6 +11,7 @@ public class SymbolTable {
     public SymbolTable getPre() {
         return pre;
     }
+    private FuncSymbol funcSymbol;
 
     public void setPre(SymbolTable pre) {
         this.pre = pre;
@@ -44,5 +45,20 @@ public class SymbolTable {
         } while (temp != null);
 
         return null;
+    }
+
+    public Symbol getSymbolInCurrentTable(String token) {
+        if (this.symbolMap.containsKey(token)) {
+            return this.symbolMap.get(token);
+        }
+        return null;
+    }
+
+    public FuncSymbol getFuncSymbol() {
+        return funcSymbol;
+    }
+
+    public void setFuncSymbol(FuncSymbol funcSymbol) {
+        this.funcSymbol = funcSymbol;
     }
 }

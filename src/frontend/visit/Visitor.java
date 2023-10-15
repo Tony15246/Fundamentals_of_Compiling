@@ -1,5 +1,6 @@
 package frontend.visit;
 
+import frontend.Lexer;
 import frontend.error.Error;
 import frontend.error.Logger;
 import frontend.parse.GrammarUnit;
@@ -203,8 +204,10 @@ public class Visitor {
             Logger.getLogger().addError(new Error(ident.getToken().lineNum, "b"));
             return;
         }
-        currentTable.addSymbol(new FuncSymbol(currentTable, ident.getToken(), retype));
+        FuncSymbol funcSymbol = new FuncSymbol(currentTable, ident.getToken(), retype);
+        currentTable.addSymbol(funcSymbol);
         SymbolTable temp = new SymbolTable();
+        temp.setFuncSymbol(funcSymbol);
         currentTable.addNext(temp);
         currentTable = temp;
         if (children.get(3) instanceof GrammarUnit) {
@@ -215,7 +218,13 @@ public class Visitor {
     }
 
     public void checkMainFuncDef(Node mainFuncDef) {
-        //todo
+        ArrayList<Node> children = mainFuncDef.getChildren();
+        SymbolTable main = new SymbolTable();
+        main.setFuncSymbol(new FuncSymbol(main, null, 2));
+        currentTable.addNext(main);
+        currentTable = main;
+        checkBlock(children.get(4));
+        currentTable = currentTable.getPre();
     }
 
     public int checkFuncType(Node funcType) {
@@ -231,11 +240,103 @@ public class Visitor {
 
     public ArrayList<Symbol> checkFuncFParams(Node funcFParams) {
         ArrayList<Symbol> params = new ArrayList<>();
-        //todo
+        ArrayList<Node> children = funcFParams.getChildren();
+        for (Node child : children) {
+            if (child instanceof GrammarUnit unit
+                    && unit.getType() == GrammarUnit.GrammarUnitType.FuncFParam) {
+                params.add(checkFuncFParam(child));
+            }
+        }
         return params;
     }
 
+    public Symbol checkFuncFParam(Node funcFParam) {
+        Symbol param;
+        TerminalSymbol ident;
+        Symbol repeat;
+        ArrayList<Node> children = funcFParam.getChildren();
+        switch (children.size()) {
+            case 2:
+                ident = (TerminalSymbol) children.get(1);
+                repeat = currentTable.getSymbolInCurrentTable(ident.getToken().value);
+                if (repeat != null) {
+                    Logger.getLogger().addError(new Error(ident.getToken().lineNum, "b"));
+                    return null;
+                }
+                param = new VarSymbol(currentTable, ident.getToken(), false);
+                currentTable.addSymbol(param);
+                break;
+            case 4:
+                ident = (TerminalSymbol) children.get(1);
+                repeat = currentTable.getSymbolInCurrentTable(ident.getToken().value);
+                if (repeat != null) {
+                    Logger.getLogger().addError(new Error(ident.getToken().lineNum, "b"));
+                    return null;
+                }
+                param = new OneDimensionArraySymbol(currentTable, ident.getToken(), false, -1);
+                currentTable.addSymbol(param);
+                break;
+            case 7:
+                ident = (TerminalSymbol) children.get(1);
+                repeat = currentTable.getSymbolInCurrentTable(ident.getToken().value);
+                if (repeat != null) {
+                    Logger.getLogger().addError(new Error(ident.getToken().lineNum, "b"));
+                    return null;
+                }
+                GrammarUnit constExp = (GrammarUnit) children.get(5);
+                int dim2 = checkConstExp(constExp);
+                param = new TwoDimensionArraySymbol(currentTable, ident.getToken(), false, -1, dim2);
+                currentTable.addSymbol(param);
+                break;
+            default:
+                return null;
+        }
+        return param;
+    }
+
     public void checkBlock(Node block) {
+        ArrayList<Node> children = block.getChildren();
+        int count = 0;
+        for (Node child : children) {
+            if (child instanceof GrammarUnit) {
+                checkBlockItem(child);
+                count++;
+            }
+        }
+        TerminalSymbol rbrace = (TerminalSymbol) children.get(-1);
+        FuncSymbol funcSymbol = currentTable.getFuncSymbol();
+        if (funcSymbol != null) {
+            if (funcSymbol.getRetype() != 0 && count == 0) {
+                Logger.getLogger().addError(new Error(rbrace.getToken().lineNum, "g"));
+            } else if (funcSymbol.getRetype() == 0 && count > 0) {
+                GrammarUnit lastBlockItem = (GrammarUnit) children.get(-2);
+                TerminalSymbol returnSymbol = null;
+                for (Node lastBlockItemChild : lastBlockItem.getChildren()) {
+                    if (lastBlockItemChild instanceof TerminalSymbol terminalSymbol
+                            && terminalSymbol.getToken().type == Lexer.Token.TokenType.RETURNTK) {
+                        returnSymbol = terminalSymbol;
+                    }
+                }
+                if (returnSymbol != null && returnSymbol != lastBlockItem.getChildren().get(-2)) {
+                    Logger.getLogger().addError(new Error(returnSymbol.getToken().lineNum, "f"));
+                }
+            } else if (funcSymbol.getRetype() != 0 && count > 0) {
+                GrammarUnit lastBlockItem = (GrammarUnit) children.get(-2);
+                boolean error = true;
+                for (Node lastBlockItemChild : lastBlockItem.getChildren()) {
+                    if (lastBlockItemChild instanceof TerminalSymbol returnSymbol
+                            && returnSymbol.getToken().type == Lexer.Token.TokenType.RETURNTK) {
+                        error = false;
+                    }
+                }
+                if (error) {
+                    Logger.getLogger().addError(new Error(rbrace.getToken().lineNum, "g"));
+                }
+            }
+        }
+    }
+
+    public void checkBlockItem(Node blockItem) {
         //todo
     }
 

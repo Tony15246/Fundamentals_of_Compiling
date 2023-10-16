@@ -18,6 +18,10 @@ public class Visitor {
         this.root = root;
     }
 
+    public SymbolTable getRootTable() {
+        return rootTable;
+    }
+
     public void visit() {
         rootTable = new SymbolTable();
         currentTable = rootTable;
@@ -38,7 +42,7 @@ public class Visitor {
         }
     }
 
-    public void checkDecl(Node decl) {
+    private void checkDecl(Node decl) {
         ArrayList<Node> children = decl.getChildren();
         for (Node child : children) {
             GrammarUnit unit = (GrammarUnit) child;
@@ -53,16 +57,16 @@ public class Visitor {
         }
     }
 
-    public void checkConstDecl(Node constDecl) {
+    private void checkConstDecl(Node constDecl) {
         ArrayList<Node> children = constDecl.getChildren();
         for (Node child : children) {
-            if (child instanceof GrammarUnit){
+            if (child instanceof GrammarUnit) {
                 checkConstDef(child);
             }
         }
     }
 
-    public void checkConstDef(Node constDef) {
+    private void checkConstDef(Node constDef) {
         int dim = 0;
         TerminalSymbol ident;
         Symbol repeat;
@@ -117,13 +121,12 @@ public class Visitor {
         }
     }
 
-    public ArrayList<Integer> checkConstInitVal(Node constInitVal) {
+    private ArrayList<Integer> checkConstInitVal(Node constInitVal) {
         ArrayList<Integer> values = new ArrayList<>();
         ArrayList<Node> children = constInitVal.getChildren();
         if (children.get(0) instanceof GrammarUnit) {
             values.add(checkConstExp(children.get(0)));
-        }
-        else {
+        } else {
             for (Node child : children) {
                 if (child instanceof GrammarUnit unit
                         && unit.getType() == GrammarUnit.GrammarUnitType.ConstInitVal) {
@@ -134,7 +137,7 @@ public class Visitor {
         return values;
     }
 
-    public void checkVarDecl(Node varDecl) {
+    private void checkVarDecl(Node varDecl) {
         ArrayList<Node> children = varDecl.getChildren();
         for (Node child : children) {
             if (child instanceof GrammarUnit unit
@@ -144,7 +147,7 @@ public class Visitor {
         }
     }
 
-    public void checkVarDef(Node varDef) {
+    private void checkVarDef(Node varDef) {
         int dim = 0;
         TerminalSymbol ident;
         Symbol repeat;
@@ -167,6 +170,9 @@ public class Visitor {
                     return;
                 }
                 currentTable.addSymbol(new VarSymbol(currentTable, ident.getToken(), false));
+                if (children.size() == 3) {
+                    checkInitVal(children.get(2));
+                }
                 break;
             case 1:
                 ident = (TerminalSymbol) children.get(0);
@@ -178,6 +184,9 @@ public class Visitor {
                 GrammarUnit constExp = (GrammarUnit) children.get(2);
                 dim1 = checkConstExp(constExp);
                 currentTable.addSymbol(new OneDimensionArraySymbol(currentTable, ident.getToken(), false, dim1));
+                if (children.size() == 6) {
+                    checkInitVal(children.get(5));
+                }
                 break;
             case 2:
                 ident = (TerminalSymbol) children.get(0);
@@ -191,11 +200,28 @@ public class Visitor {
                 dim1 = checkConstExp(constExp1);
                 dim2 = checkConstExp(constExp2);
                 currentTable.addSymbol(new TwoDimensionArraySymbol(currentTable, ident.getToken(), false, dim1, dim2));
+                if (children.size() == 9) {
+                    checkInitVal(children.get(8));
+                }
                 break;
         }
     }
 
-    public void checkFuncDef(Node funcDef) {
+    private void checkInitVal(Node initVal) {
+        ArrayList<Node> children = initVal.getChildren();
+        if (children.get(0) instanceof TerminalSymbol) {
+            for (Node child : children) {
+                if (child instanceof GrammarUnit unit
+                        && unit.getType() == GrammarUnit.GrammarUnitType.InitVal) {
+                    checkInitVal(unit);
+                }
+            }
+        } else {
+            checkExp(children.get(0));
+        }
+    }
+
+    private void checkFuncDef(Node funcDef) {
         ArrayList<Node> children = funcDef.getChildren();
         int retype = checkFuncType(children.get(0));
         TerminalSymbol ident = (TerminalSymbol) children.get(1);
@@ -217,7 +243,7 @@ public class Visitor {
         currentTable = currentTable.getPre();
     }
 
-    public void checkMainFuncDef(Node mainFuncDef) {
+    private void checkMainFuncDef(Node mainFuncDef) {
         ArrayList<Node> children = mainFuncDef.getChildren();
         SymbolTable main = new SymbolTable();
         main.setFuncSymbol(new FuncSymbol(main, null, 2));
@@ -227,7 +253,7 @@ public class Visitor {
         currentTable = currentTable.getPre();
     }
 
-    public int checkFuncType(Node funcType) {
+    private int checkFuncType(Node funcType) {
         int retype;
         TerminalSymbol type = (TerminalSymbol) funcType.getChildren().get(0);
         retype = switch (type.getToken().value) {
@@ -238,7 +264,7 @@ public class Visitor {
         return retype;
     }
 
-    public ArrayList<Symbol> checkFuncFParams(Node funcFParams) {
+    private ArrayList<Symbol> checkFuncFParams(Node funcFParams) {
         ArrayList<Symbol> params = new ArrayList<>();
         ArrayList<Node> children = funcFParams.getChildren();
         for (Node child : children) {
@@ -250,7 +276,7 @@ public class Visitor {
         return params;
     }
 
-    public Symbol checkFuncFParam(Node funcFParam) {
+    private Symbol checkFuncFParam(Node funcFParam) {
         Symbol param;
         TerminalSymbol ident;
         Symbol repeat;
@@ -294,7 +320,7 @@ public class Visitor {
         return param;
     }
 
-    public void checkBlock(Node block) {
+    private void checkBlock(Node block) {
         ArrayList<Node> children = block.getChildren();
         int count = 0;
         for (Node child : children) {
@@ -313,7 +339,7 @@ public class Visitor {
                 TerminalSymbol returnSymbol = null;
                 for (Node lastBlockItemChild : lastBlockItem.getChildren()) {
                     if (lastBlockItemChild instanceof TerminalSymbol terminalSymbol
-                            && terminalSymbol.getToken().type == Lexer.Token.TokenType.RETURNTK) {
+                            && terminalSymbol.getType() == Lexer.Token.TokenType.RETURNTK) {
                         returnSymbol = terminalSymbol;
                     }
                 }
@@ -325,7 +351,7 @@ public class Visitor {
                 boolean error = true;
                 for (Node lastBlockItemChild : lastBlockItem.getChildren()) {
                     if (lastBlockItemChild instanceof TerminalSymbol returnSymbol
-                            && returnSymbol.getToken().type == Lexer.Token.TokenType.RETURNTK) {
+                            && returnSymbol.getType() == Lexer.Token.TokenType.RETURNTK) {
                         error = false;
                     }
                 }
@@ -336,11 +362,178 @@ public class Visitor {
         }
     }
 
-    public void checkBlockItem(Node blockItem) {
+    private void checkBlockItem(Node blockItem) {
+        ArrayList<Node> children = blockItem.getChildren();
+        if (children.get(0) instanceof GrammarUnit
+                && ((GrammarUnit) children.get(0)).getType() == GrammarUnit.GrammarUnitType.Decl) {
+            checkDecl(children.get(0));
+        } else {
+            checkStmt(children.get(0));
+        }
+    }
+
+    private void checkStmt(Node stmt) {
+        ArrayList<Node> children = stmt.getChildren();
+        if (children.get(0) instanceof TerminalSymbol terminalSymbol) {
+            switch (terminalSymbol.getType()) {
+                case IFTK:
+                    checkCond(children.get(2));
+                    GrammarUnit stmt1 = (GrammarUnit) children.get(4);
+                    if (stmt1.getChildren().size() == 1
+                            && stmt1.getChildren().get(0) instanceof GrammarUnit block
+                            && block.getType() == GrammarUnit.GrammarUnitType.Block) {
+                        SymbolTable temp = new SymbolTable();
+                        currentTable.addNext(temp);
+                        currentTable = temp;
+                        checkStmt(stmt1);
+                        currentTable = currentTable.getPre();
+                    } else {
+                        checkStmt(stmt1);
+                    }
+                    if (children.size() == 7) {
+                        GrammarUnit stmt2 = (GrammarUnit) children.get(6);
+                        if (stmt2.getChildren().size() == 1
+                                && stmt2.getChildren().get(0) instanceof GrammarUnit block
+                                && block.getType() == GrammarUnit.GrammarUnitType.Block) {
+                            SymbolTable temp = new SymbolTable();
+                            currentTable.addNext(temp);
+                            currentTable = temp;
+                            checkStmt(stmt2);
+                            currentTable = currentTable.getPre();
+                        } else {
+                            checkStmt(stmt2);
+                        }
+                    }
+                    break;
+                case FORTK:
+                    int index = 2;
+                    if (children.get(index) instanceof TerminalSymbol) {
+                        index++;
+                    } else {
+                        checkForStmt(children.get(index));
+                        index += 2;
+                    }
+                    if (children.get(index) instanceof TerminalSymbol) {
+                        index++;
+                    } else {
+                        checkCond(children.get(index));
+                        index += 2;
+                    }
+                    if (children.get(index) instanceof TerminalSymbol) {
+                        index++;
+                    } else {
+                        checkForStmt(children.get(index));
+                        index += 2;
+                    }
+                    GrammarUnit stmt3 = (GrammarUnit) children.get(index);
+                    if (stmt3.getChildren().size() == 1
+                            && stmt3.getChildren().get(0) instanceof GrammarUnit block
+                            && block.getType() == GrammarUnit.GrammarUnitType.Block) {
+                        SymbolTable temp = new SymbolTable();
+                        currentTable.addNext(temp);
+                        currentTable = temp;
+                        checkStmt(stmt3);
+                        currentTable = currentTable.getPre();
+                    } else {
+                        checkStmt(stmt3);
+                    }
+                    break;
+                case RETURNTK:
+                    if (children.size() == 3) {
+                        checkExp(children.get(1));
+                    }
+                    break;
+                case PRINTFTK:
+                    for (Node child : children) {
+                        if (child instanceof GrammarUnit exp
+                                && exp.getType() == GrammarUnit.GrammarUnitType.Exp) {
+                            checkExp(exp);
+                        }
+                    }
+                    break;
+            }
+        } else if (children.get(0) instanceof GrammarUnit unit) {
+            switch (unit.getType()) {
+                case Block:
+                    checkBlock(unit);
+                    break;
+                case Exp:
+                    checkExp(unit);
+                    break;
+                case LVal:
+                    TerminalSymbol ident = (TerminalSymbol) unit.getChildren().get(0);
+                    VarSymbol varSymbol = (VarSymbol) currentTable.getSymbol(ident.getToken().value);
+                    if (varSymbol == null) {
+                        Logger.getLogger().addError(new Error(ident.getToken().lineNum, "c"));
+                    } else if (varSymbol.isConst()) {
+                        Logger.getLogger().addError(new Error(ident.getToken().lineNum, "h"));
+                    }
+                    checkLVal(unit);
+                    if (children.get(2) instanceof GrammarUnit exp
+                            && exp.getType() == GrammarUnit.GrammarUnitType.Exp) {
+                        checkExp(exp);
+                    }
+                    break;
+            }
+        }
+    }
+
+    private void checkForStmt(Node forStmt) {
+        ArrayList<Node> children = forStmt.getChildren();
+        checkLVal(children.get(0));
+        checkExp(children.get(2));
+    }
+
+    private void checkExp(Node exp) {
+        checkAddExp(exp);
+    }
+
+    private void checkCond(Node cond) {
+        checkLOrExp(cond);
+    }
+
+    private void checkLVal(Node lVal) {
+        ArrayList<Node> children = lVal.getChildren();
+        TerminalSymbol ident = (TerminalSymbol) children.get(0);
+        Symbol symbol = currentTable.getSymbol(ident.getToken().value);
+        if (symbol == null) {
+            Logger.getLogger().addError(new Error(ident.getToken().lineNum, "c"));
+        }
+        for (Node child : children) {
+            if (child instanceof GrammarUnit exp
+                    && exp.getType() == GrammarUnit.GrammarUnitType.Exp) {
+                checkExp(exp);
+            }
+        }
+    }
+
+    private void checkPrimaryExp(Node primaryExp) {
+        ArrayList<Node> children = primaryExp.getChildren();
+        if (children.get(0) instanceof TerminalSymbol) {
+            checkExp(children.get(1));
+        } else if (children.get(0) instanceof GrammarUnit lVal
+                        && lVal.getType() == GrammarUnit.GrammarUnitType.LVal) {
+            checkLVal(lVal);
+        }
+    }
+
+    private void checkUnaryExp(Node unaryExp) {
         //todo
     }
 
-    public int checkConstExp(Node constExp) {
+    private void checkFuncRParams(Node funcRParams) {
+        //todo
+    }
+
+    private void checkAddExp(Node addExp) {
+        //todo
+    }
+
+    private void checkLOrExp(Node lOrExp) {
+        //todo
+    }
+
+    private int checkConstExp(Node constExp) {
         //todo
         return 0;
     }

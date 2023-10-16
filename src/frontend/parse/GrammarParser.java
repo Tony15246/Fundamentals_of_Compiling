@@ -14,6 +14,7 @@ public class GrammarParser {
     private int index;
     private int lastIndex;
     private int loop = 0;
+    private boolean onErrorProcessing = true;
 
     public ArrayList<String> getResult() {
         GrammarUnit compUnit = CompUnit();
@@ -21,8 +22,9 @@ public class GrammarParser {
         return result;
     }
 
-    public GrammarParser(ArrayList<Lexer.Token> tokens) {
+    public GrammarParser(ArrayList<Lexer.Token> tokens, boolean onErrorProcessing) {
         this.tokens = tokens;
+        this.onErrorProcessing = onErrorProcessing;
         this.index = -1;
     }
 
@@ -117,13 +119,16 @@ public class GrammarParser {
             constDecl.addChild(semicn);
             next();
         } else {
-            //error
-//            throw new RuntimeException("ConstDecl error");
-            Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
-            TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
-                    peek(-1).lineNum));
-            semicn.setCorrect(false);
-            constDecl.addChild(semicn);
+            if (onErrorProcessing) {
+                Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
+                TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
+                        peek(-1).lineNum));
+                semicn.setCorrect(false);
+                constDecl.addChild(semicn);
+            } else {
+                //error
+                throw new RuntimeException("ConstDecl error");
+            }
         }
         return constDecl;
     }
@@ -146,13 +151,16 @@ public class GrammarParser {
             varDecl.addChild(semicn);
             next();
         } else {
-            //error
-//            throw new RuntimeException("VarDecl error");
-            Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
-            TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
-                    peek(-1).lineNum));
-            semicn.setCorrect(false);
-            varDecl.addChild(semicn);
+            if (onErrorProcessing) {
+                Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
+                TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
+                        peek(-1).lineNum));
+                semicn.setCorrect(false);
+                varDecl.addChild(semicn);
+            } else {
+                //error
+                throw new RuntimeException("VarDecl error");
+            }
         }
         return varDecl;
     }
@@ -178,13 +186,16 @@ public class GrammarParser {
                 constDef.addChild(rBrack);
                 next();
             } else {
-                //error
-//                throw new RuntimeException("ConstDef error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "k"));
-                TerminalSymbol rBrack = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RBRACK.name(), "]",
-                        peek(-1).lineNum));
-                rBrack.setCorrect(false);
-                constDef.addChild(rBrack);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "k"));
+                    TerminalSymbol rBrack = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RBRACK.name(), "]",
+                            peek(-1).lineNum));
+                    rBrack.setCorrect(false);
+                    constDef.addChild(rBrack);
+                } else {
+                    //error
+                    throw new RuntimeException("ConstDef error");
+                }
             }
         }
         if (now().type == Lexer.Token.TokenType.ASSIGN) {
@@ -256,13 +267,16 @@ public class GrammarParser {
                 varDef.addChild(rBrack);
                 next();
             } else {
-                //error
-//                throw new RuntimeException("VarDef error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "k"));
-                TerminalSymbol rBrack = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RBRACK.name(), "]",
-                        peek(-1).lineNum));
-                rBrack.setCorrect(false);
-                varDef.addChild(rBrack);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "k"));
+                    TerminalSymbol rBrack = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RBRACK.name(), "]",
+                            peek(-1).lineNum));
+                    rBrack.setCorrect(false);
+                    varDef.addChild(rBrack);
+                } else {
+                    //error
+                    throw new RuntimeException("VarDef error");
+                }
             }
         }
         if (now().type == Lexer.Token.TokenType.ASSIGN) {
@@ -339,22 +353,28 @@ public class GrammarParser {
                 TerminalSymbol rParent = new TerminalSymbol(now());
                 funcDef.addChild(rParent);
             } else {
-                //error
-//                throw new RuntimeException("FuncDef error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
-                TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")"
-                        , peek(-1).lineNum));
-                rParent.setCorrect(false);
-                funcDef.addChild(rParent);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
+                    TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")"
+                            , peek(-1).lineNum));
+                    rParent.setCorrect(false);
+                    funcDef.addChild(rParent);
+                } else {
+                    //error
+                    throw new RuntimeException("FuncDef error");
+                }
             }
         } else {
-            //error
-//            throw new RuntimeException("FuncDef error");
-            Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
-            TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")",
-                    peek(-1).lineNum));
-            rParent.setCorrect(false);
-            funcDef.addChild(rParent);
+            if (onErrorProcessing) {
+                Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
+                TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")",
+                        peek(-1).lineNum));
+                rParent.setCorrect(false);
+                funcDef.addChild(rParent);
+            } else {
+                //error
+                throw new RuntimeException("FuncDef error");
+            }
         }
         next();
         GrammarUnit block = Block();
@@ -389,13 +409,16 @@ public class GrammarParser {
             TerminalSymbol rParent = new TerminalSymbol(now());
             mainFuncDef.addChild(rParent);
         } else {
-            //error
-//            throw new RuntimeException("MainFuncDef error");
-            Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
-            TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")",
-                    peek(-1).lineNum));
-            rParent.setCorrect(false);
-            mainFuncDef.addChild(rParent);
+            if (onErrorProcessing) {
+                Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
+                TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")",
+                        peek(-1).lineNum));
+                rParent.setCorrect(false);
+                mainFuncDef.addChild(rParent);
+            } else {
+                //error
+                throw new RuntimeException("MainFuncDef error");
+            }
         }
         next();
         GrammarUnit block = Block();
@@ -452,13 +475,16 @@ public class GrammarParser {
                 TerminalSymbol rBrack = new TerminalSymbol(now());
                 funcFParam.addChild(rBrack);
             } else {
-                //error
-//                throw new RuntimeException("FuncFParam error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "k"));
-                TerminalSymbol rBrack = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RBRACK.name(), "]",
-                        peek(-1).lineNum));
-                rBrack.setCorrect(false);
-                funcFParam.addChild(rBrack);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "k"));
+                    TerminalSymbol rBrack = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RBRACK.name(), "]",
+                            peek(-1).lineNum));
+                    rBrack.setCorrect(false);
+                    funcFParam.addChild(rBrack);
+                } else {
+                    //error
+                    throw new RuntimeException("FuncFParam error");
+                }
             }
             next();
             while (now().type == Lexer.Token.TokenType.LBRACK) {
@@ -472,13 +498,16 @@ public class GrammarParser {
                     funcFParam.addChild(rBrack);
                     next();
                 } else {
-                    //error
-//                    throw new RuntimeException("FuncFParam error");
-                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "k"));
-                    TerminalSymbol rBrack = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RBRACK.name(),
-                            "]", peek(-1).lineNum));
-                    rBrack.setCorrect(false);
-                    funcFParam.addChild(rBrack);
+                    if (onErrorProcessing) {
+                        Logger.getLogger().addError(new Error(peek(-1).lineNum, "k"));
+                        TerminalSymbol rBrack = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RBRACK.name(),
+                                "]", peek(-1).lineNum));
+                        rBrack.setCorrect(false);
+                        funcFParam.addChild(rBrack);
+                    } else {
+                        //error
+                        throw new RuntimeException("FuncFParam error");
+                    }
                 }
             }
         }
@@ -529,13 +558,16 @@ public class GrammarParser {
                 TerminalSymbol rParent = new TerminalSymbol(now());
                 stmt.addChild(rParent);
             } else {
-                //error
-//                throw new RuntimeException("Stmt error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
-                TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")",
-                        peek(-1).lineNum));
-                rParent.setCorrect(false);
-                stmt.addChild(rParent);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
+                    TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")",
+                            peek(-1).lineNum));
+                    rParent.setCorrect(false);
+                    stmt.addChild(rParent);
+                } else {
+                    //error
+                    throw new RuntimeException("Stmt error");
+                }
             }
             next();
             GrammarUnit stmt1 = Stmt();
@@ -606,7 +638,7 @@ public class GrammarParser {
             stmt.addChild(stmt1);
         } else if (now().type == Lexer.Token.TokenType.BREAKTK) {
             TerminalSymbol breaktk = new TerminalSymbol(now());
-            if (loop == 0) {
+            if (loop == 0 && onErrorProcessing) {
                 Logger.getLogger().addError(new Error(now().lineNum, "m"));
                 breaktk.setCorrect(false);
             }
@@ -619,17 +651,20 @@ public class GrammarParser {
                 stmt.addChild(semicn);
                 next();
             } else {
-                //error
-//                throw new RuntimeException("Stmt error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
-                TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
-                        peek(-1).lineNum));
-                semicn.setCorrect(false);
-                stmt.addChild(semicn);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
+                    TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
+                            peek(-1).lineNum));
+                    semicn.setCorrect(false);
+                    stmt.addChild(semicn);
+                } else {
+                    //error
+                    throw new RuntimeException("Stmt error");
+                }
             }
         } else if (now().type == Lexer.Token.TokenType.CONTINUETK) {
             TerminalSymbol continuetk = new TerminalSymbol(now());
-            if (loop == 0) {
+            if (loop == 0 && onErrorProcessing) {
                 Logger.getLogger().addError(new Error(now().lineNum, "m"));
                 continuetk.setCorrect(false);
             }
@@ -642,13 +677,16 @@ public class GrammarParser {
                 stmt.addChild(semicn);
                 next();
             } else {
-                //error
-//                throw new RuntimeException("Stmt error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
-                TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
-                        peek(-1).lineNum));
-                semicn.setCorrect(false);
-                stmt.addChild(semicn);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
+                    TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
+                            peek(-1).lineNum));
+                    semicn.setCorrect(false);
+                    stmt.addChild(semicn);
+                } else {
+                    //error
+                    throw new RuntimeException("Stmt error");
+                }
             }
         } else if (now().type == Lexer.Token.TokenType.RETURNTK) {
             TerminalSymbol returntk = new TerminalSymbol(now());
@@ -665,22 +703,28 @@ public class GrammarParser {
                     stmt.addChild(semicn);
                     next();
                 } else {
-                    //error
-//                    throw new RuntimeException("Stmt error");
-                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
-                    TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(),
-                            ";", peek(-1).lineNum));
-                    semicn.setCorrect(false);
-                    stmt.addChild(semicn);
+                    if (onErrorProcessing) {
+                        Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
+                        TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(),
+                                ";", peek(-1).lineNum));
+                        semicn.setCorrect(false);
+                        stmt.addChild(semicn);
+                    } else {
+                        //error
+                        throw new RuntimeException("Stmt error");
+                    }
                 }
             } else {
-                //error
-//                throw new RuntimeException("Stmt error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
-                TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
-                        peek(-1).lineNum));
-                semicn.setCorrect(false);
-                stmt.addChild(semicn);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
+                    TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
+                            peek(-1).lineNum));
+                    semicn.setCorrect(false);
+                    stmt.addChild(semicn);
+                } else {
+                    //error
+                    throw new RuntimeException("Stmt error");
+                }
             }
         } else if (now().type == Lexer.Token.TokenType.PRINTFTK) {
             TerminalSymbol printftk = new TerminalSymbol(now());
@@ -694,7 +738,8 @@ public class GrammarParser {
             }
             if (next().type == Lexer.Token.TokenType.STRCON) {
                 TerminalSymbol strcon = new TerminalSymbol(now());
-                if (!Pattern.matches("^(?:[\\x20\\x21\\x28-\\x5B\\x5D-\\x7E]|\\\\n|%d)+$", now().value)) {
+                if (!Pattern.matches("^(?:[\\x20\\x21\\x28-\\x5B\\x5D-\\x7E]|\\\\n|%d)+$", now().value)
+                        && onErrorProcessing) {
                     Logger.getLogger().addError(new Error(now().lineNum, "a"));
                     strcon.setCorrect(false);
                 }
@@ -714,7 +759,7 @@ public class GrammarParser {
                 stmt.addChild(exp);
             }
             String[] temp = now().value.split("%d");
-            if (temp.length - 1 != commaNum) {
+            if (temp.length - 1 != commaNum && onErrorProcessing) {
                 Logger.getLogger().addError(new Error(peek(-1).lineNum, "l"));
                 stmt.setCorrect(false);
             }
@@ -722,26 +767,32 @@ public class GrammarParser {
                 TerminalSymbol rParent = new TerminalSymbol(now());
                 stmt.addChild(rParent);
             } else {
-                //error
-//                throw new RuntimeException("Stmt error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
-                TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")",
-                        peek(-1).lineNum));
-                rParent.setCorrect(false);
-                stmt.addChild(rParent);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
+                    TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")",
+                            peek(-1).lineNum));
+                    rParent.setCorrect(false);
+                    stmt.addChild(rParent);
+                } else {
+                    //error
+                    throw new RuntimeException("Stmt error");
+                }
             }
             if (next().type == Lexer.Token.TokenType.SEMICN) {
                 TerminalSymbol semicn = new TerminalSymbol(now());
                 stmt.addChild(semicn);
                 next();
             } else {
-                //error
-//                throw new RuntimeException("Stmt error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
-                TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
-                        peek(-1).lineNum));
-                semicn.setCorrect(false);
-                stmt.addChild(semicn);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
+                    TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
+                            peek(-1).lineNum));
+                    semicn.setCorrect(false);
+                    stmt.addChild(semicn);
+                } else {
+                    //error
+                    throw new RuntimeException("Stmt error");
+                }
             }
         } else if (now().type == Lexer.Token.TokenType.LBRACE) {
             GrammarUnit block = Block();
@@ -749,12 +800,17 @@ public class GrammarParser {
         } else {
             boolean isExp = true;
             lastIndex = index;
+            boolean temp = onErrorProcessing;
+            onErrorProcessing = false;
             try {
                 LVal();
             } catch (RuntimeException ignored) {
             }
             if (now().type == Lexer.Token.TokenType.ASSIGN) {
                 isExp = false;
+            }
+            if (temp) {
+                onErrorProcessing = true;
             }
             index = lastIndex;
             if (isExp) {
@@ -770,14 +826,17 @@ public class GrammarParser {
                         stmt.addChild(semicn);
                         next();
                     } else {
-                        //error
-//                        throw new RuntimeException("Stmt error");
-                        Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
-                        TerminalSymbol semicn =
-                                new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
-                                        peek(-1).lineNum));
-                        semicn.setCorrect(false);
-                        stmt.addChild(semicn);
+                        if (onErrorProcessing) {
+                            Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
+                            TerminalSymbol semicn =
+                                    new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(), ";",
+                                            peek(-1).lineNum));
+                            semicn.setCorrect(false);
+                            stmt.addChild(semicn);
+                        } else {
+                            //error
+                            throw new RuntimeException("Stmt error");
+                        }
                     }
                 }
                 return stmt;
@@ -805,26 +864,32 @@ public class GrammarParser {
                     TerminalSymbol rParent = new TerminalSymbol(now());
                     stmt.addChild(rParent);
                 } else {
-                    //error
-//                    throw new RuntimeException("Stmt error");
-                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
-                    TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(),
-                            ")", peek(-1).lineNum));
-                    rParent.setCorrect(false);
-                    stmt.addChild(rParent);
+                    if (onErrorProcessing) {
+                        Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
+                        TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(),
+                                ")", peek(-1).lineNum));
+                        rParent.setCorrect(false);
+                        stmt.addChild(rParent);
+                    } else {
+                        //error
+                        throw new RuntimeException("Stmt error");
+                    }
                 }
                 if (next().type == Lexer.Token.TokenType.SEMICN) {
                     TerminalSymbol semicn = new TerminalSymbol(now());
                     stmt.addChild(semicn);
                     next();
                 } else {
-                    //error
-//                    throw new RuntimeException("Stmt error");
-                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
-                    TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(),
-                            ";", peek(-1).lineNum));
-                    semicn.setCorrect(false);
-                    stmt.addChild(semicn);
+                    if (onErrorProcessing) {
+                        Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
+                        TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(),
+                                ";", peek(-1).lineNum));
+                        semicn.setCorrect(false);
+                        stmt.addChild(semicn);
+                    } else {
+                        //error
+                        throw new RuntimeException("Stmt error");
+                    }
                 }
             } else {
                 GrammarUnit exp = Exp();
@@ -834,13 +899,16 @@ public class GrammarParser {
                     stmt.addChild(semicn);
                     next();
                 } else {
-                    //error
-//                    throw new RuntimeException("Stmt error");
-                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
-                    TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(),
-                            ";", peek(-1).lineNum));
-                    semicn.setCorrect(false);
-                    stmt.addChild(semicn);
+                    if (onErrorProcessing) {
+                        Logger.getLogger().addError(new Error(peek(-1).lineNum, "i"));
+                        TerminalSymbol semicn = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.SEMICN.name(),
+                                ";", peek(-1).lineNum));
+                        semicn.setCorrect(false);
+                        stmt.addChild(semicn);
+                    } else {
+                        //error
+                        throw new RuntimeException("Stmt error");
+                    }
                 }
             }
         }
@@ -897,13 +965,16 @@ public class GrammarParser {
                 TerminalSymbol rBrack = new TerminalSymbol(now());
                 lVal.addChild(rBrack);
             } else {
-                //error
-//                throw new RuntimeException("LVal error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "k"));
-                TerminalSymbol rBrack = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RBRACK.name(), "]",
-                        peek(-1).lineNum));
-                rBrack.setCorrect(false);
-                lVal.addChild(rBrack);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "k"));
+                    TerminalSymbol rBrack = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RBRACK.name(), "]",
+                            peek(-1).lineNum));
+                    rBrack.setCorrect(false);
+                    lVal.addChild(rBrack);
+                } else {
+                    //error
+                    throw new RuntimeException("LVal error");
+                }
             }
         }
         return lVal;
@@ -966,7 +1037,7 @@ public class GrammarParser {
                 TerminalSymbol rParent = new TerminalSymbol(now());
                 unaryExp.addChild(rParent);
                 next();
-            } else if (now().type == Lexer.Token.TokenType.INTTK) {
+            } else if (isExpFirst()) {
                 GrammarUnit funcRParams = FuncRParams();
                 unaryExp.addChild(funcRParams);
                 if (now().type == Lexer.Token.TokenType.RPARENT) {
@@ -974,22 +1045,28 @@ public class GrammarParser {
                     unaryExp.addChild(rParent);
                     next();
                 } else {
-                    //error
-//                    throw new RuntimeException("UnaryExp error");
-                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
-                    TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(),
-                            ")", peek(-1).lineNum));
-                    rParent.setCorrect(false);
-                    unaryExp.addChild(rParent);
+                    if (onErrorProcessing) {
+                        Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
+                        TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(),
+                                ")", peek(-1).lineNum));
+                        rParent.setCorrect(false);
+                        unaryExp.addChild(rParent);
+                    } else {
+                        //error
+                        throw new RuntimeException("UnaryExp error");
+                    }
                 }
             } else {
-                //error
-//                throw new RuntimeException("UnaryExp error");
-                Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
-                TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")",
-                        peek(-1).lineNum));
-                rParent.setCorrect(false);
-                unaryExp.addChild(rParent);
+                if (onErrorProcessing) {
+                    Logger.getLogger().addError(new Error(peek(-1).lineNum, "j"));
+                    TerminalSymbol rParent = new TerminalSymbol(new Lexer.Token(Lexer.Token.TokenType.RPARENT.name(), ")",
+                            peek(-1).lineNum));
+                    rParent.setCorrect(false);
+                    unaryExp.addChild(rParent);
+                } else {
+                    //error
+                    throw new RuntimeException("UnaryExp error");
+                }
             }
         } else {
             GrammarUnit primaryExp = PrimaryExp();

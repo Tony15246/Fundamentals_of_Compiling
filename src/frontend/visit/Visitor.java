@@ -7,6 +7,7 @@ import frontend.parse.GrammarUnit;
 import frontend.parse.Node;
 import frontend.parse.TerminalSymbol;
 
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import java.util.ArrayList;
 
 public class Visitor {
@@ -484,15 +485,16 @@ public class Visitor {
         checkExp(children.get(2));
     }
 
-    private void checkExp(Node exp) {
-        checkAddExp(exp);
+    private int checkExp(Node exp) {
+        return checkAddExp(exp);
     }
 
     private void checkCond(Node cond) {
         checkLOrExp(cond);
     }
 
-    private void checkLVal(Node lVal) {
+    private int checkLVal(Node lVal) {
+        int dim = 0;
         ArrayList<Node> children = lVal.getChildren();
         TerminalSymbol ident = (TerminalSymbol) children.get(0);
         Symbol symbol = currentTable.getSymbol(ident.getToken().value);
@@ -502,31 +504,94 @@ public class Visitor {
         for (Node child : children) {
             if (child instanceof GrammarUnit exp
                     && exp.getType() == GrammarUnit.GrammarUnitType.Exp) {
+                dim++;
                 checkExp(exp);
             }
         }
+        return dim;
     }
 
-    private void checkPrimaryExp(Node primaryExp) {
+    private int checkPrimaryExp(Node primaryExp) {
+        int dim = 0;
         ArrayList<Node> children = primaryExp.getChildren();
         if (children.get(0) instanceof TerminalSymbol) {
-            checkExp(children.get(1));
+            dim = checkExp(children.get(1));
         } else if (children.get(0) instanceof GrammarUnit lVal
-                        && lVal.getType() == GrammarUnit.GrammarUnitType.LVal) {
-            checkLVal(lVal);
+                && lVal.getType() == GrammarUnit.GrammarUnitType.LVal) {
+            dim = checkLVal(lVal);
         }
+        return dim;
     }
 
-    private void checkUnaryExp(Node unaryExp) {
-        //todo
+    private int checkUnaryExp(Node unaryExp) {
+        int dim = -1;
+        ArrayList<Node> children = unaryExp.getChildren();
+        if (children.get(0) instanceof TerminalSymbol ident) {
+            FuncSymbol funcSymbol = (FuncSymbol) currentTable.getSymbol(ident.getToken().value);
+            if (funcSymbol == null) {
+                Logger.getLogger().addError(new Error(ident.getToken().lineNum, "c"));
+                return dim;
+            }
+            if (children.size() == 4) {
+                ArrayList<Integer> paramsDim = checkFuncRParams(children.get(2));
+                if (paramsDim.size() != funcSymbol.getParams().size()) {
+                    Logger.getLogger().addError(new Error(ident.getToken().lineNum, "d"));
+                    return dim;
+                }
+                for (int i = 0; i < paramsDim.size(); i++) {
+                    switch (paramsDim.get(i)) {
+                        case -1:
+                            Logger.getLogger().addError(new Error(ident.getToken().lineNum, "e"));
+                            return dim;
+                        case 0:
+                            if (!(funcSymbol.getParams().get(i) instanceof VarSymbol)) {
+                                Logger.getLogger().addError(new Error(ident.getToken().lineNum, "e"));
+                                return dim;
+                            }
+                            break;
+                        case 1:
+                            if (!(funcSymbol.getParams().get(i) instanceof OneDimensionArraySymbol)) {
+                                Logger.getLogger().addError(new Error(ident.getToken().lineNum, "e"));
+                                return dim;
+                            }
+                            break;
+                        case 2:
+                            if (!(funcSymbol.getParams().get(i) instanceof TwoDimensionArraySymbol)) {
+                                Logger.getLogger().addError(new Error(ident.getToken().lineNum, "e"));
+                                return dim;
+                            }
+                            break;
+                    }
+                }
+            }
+            if (funcSymbol.getRetype() == 1) {
+                dim = 0;
+            }
+        } else if (children.get(0) instanceof GrammarUnit unit) {
+            dim = switch (unit.getType()) {
+                case PrimaryExp -> checkPrimaryExp(unit);
+                case UnaryOp -> checkUnaryExp(children.get(1));
+                default -> dim;
+            };
+        }
+        return dim;
     }
 
-    private void checkFuncRParams(Node funcRParams) {
-        //todo
+    private ArrayList<Integer> checkFuncRParams(Node funcRParams) {
+        ArrayList<Node> children = funcRParams.getChildren();
+        ArrayList<Integer> paramsDim = new ArrayList<>();
+        for (Node child : children) {
+            if (child instanceof GrammarUnit exp
+                    && exp.getType() == GrammarUnit.GrammarUnitType.Exp) {
+                paramsDim.add(checkExp(exp));
+            }
+        }
+        return paramsDim;
     }
 
-    private void checkAddExp(Node addExp) {
+    private int checkAddExp(Node addExp) {
         //todo
+        return 0;
     }
 
     private void checkLOrExp(Node lOrExp) {

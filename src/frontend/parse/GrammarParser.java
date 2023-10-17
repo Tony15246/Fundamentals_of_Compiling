@@ -549,6 +549,7 @@ public class GrammarParser {
 
     private GrammarUnit Stmt() {
         GrammarUnit stmt = new GrammarUnit(GrammarUnit.GrammarUnitType.Stmt);
+        String[] formatString;
         if (now().type == Lexer.Token.TokenType.IFTK) {
             TerminalSymbol iftk = new TerminalSymbol(now());
             stmt.addChild(iftk);
@@ -752,6 +753,7 @@ public class GrammarParser {
                     Logger.getLogger().addError(new Error(now().lineNum, "a"));
                     strcon.setCorrect(false);
                 }
+                formatString = now().value.split("%d");
                 stmt.addChild(strcon);
             } else {
                 //error
@@ -767,8 +769,7 @@ public class GrammarParser {
                 GrammarUnit exp = Exp();
                 stmt.addChild(exp);
             }
-            String[] temp = now().value.split("%d");
-            if (temp.length - 1 != commaNum && onErrorProcessing) {
+            if (formatString.length - 1 != commaNum && onErrorProcessing) {
                 Logger.getLogger().addError(new Error(peek(-1).lineNum, "l"));
                 stmt.setCorrect(false);
             }

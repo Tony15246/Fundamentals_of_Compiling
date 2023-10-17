@@ -460,7 +460,11 @@ public class Visitor {
         } else if (children.get(0) instanceof GrammarUnit unit) {
             switch (unit.getType()) {
                 case Block:
+                    SymbolTable temp = new SymbolTable();
+                    currentTable.addNext(temp);
+                    currentTable = temp;
                     checkBlock(unit);
+                    currentTable = currentTable.getPre();
                     break;
                 case Exp:
                     checkExp(unit);

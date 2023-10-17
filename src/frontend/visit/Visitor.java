@@ -548,8 +548,8 @@ public class Visitor {
         int dim = -1;
         ArrayList<Node> children = unaryExp.getChildren();
         if (children.get(0) instanceof TerminalSymbol ident) {
-            FuncSymbol funcSymbol = (FuncSymbol) currentTable.getSymbol(ident.getToken().value);
-            if (funcSymbol == null) {
+            Symbol symbol =  currentTable.getSymbol(ident.getToken().value);
+            if (!(symbol instanceof FuncSymbol funcSymbol)) {
                 Logger.getLogger().addError(new Error(ident.getToken().lineNum, "c"));
                 return dim;
             }

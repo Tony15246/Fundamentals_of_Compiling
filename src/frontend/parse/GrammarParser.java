@@ -22,6 +22,10 @@ public class GrammarParser {
         return result;
     }
 
+    public Node getAstRoot() {
+        return CompUnit();
+    }
+
     public GrammarParser(ArrayList<Lexer.Token> tokens, boolean onErrorProcessing) {
         this.tokens = tokens;
         this.onErrorProcessing = onErrorProcessing;
@@ -359,6 +363,7 @@ public class GrammarParser {
                             , peek(-1).lineNum));
                     rParent.setCorrect(false);
                     funcDef.addChild(rParent);
+                    index--;
                 } else {
                     //error
                     throw new RuntimeException("FuncDef error");
@@ -371,6 +376,7 @@ public class GrammarParser {
                         peek(-1).lineNum));
                 rParent.setCorrect(false);
                 funcDef.addChild(rParent);
+                index--;
             } else {
                 //error
                 throw new RuntimeException("FuncDef error");
@@ -415,6 +421,7 @@ public class GrammarParser {
                         peek(-1).lineNum));
                 rParent.setCorrect(false);
                 mainFuncDef.addChild(rParent);
+                index--;
             } else {
                 //error
                 throw new RuntimeException("MainFuncDef error");
@@ -481,6 +488,7 @@ public class GrammarParser {
                             peek(-1).lineNum));
                     rBrack.setCorrect(false);
                     funcFParam.addChild(rBrack);
+                    index--;
                 } else {
                     //error
                     throw new RuntimeException("FuncFParam error");
@@ -564,6 +572,7 @@ public class GrammarParser {
                             peek(-1).lineNum));
                     rParent.setCorrect(false);
                     stmt.addChild(rParent);
+                    index--;
                 } else {
                     //error
                     throw new RuntimeException("Stmt error");
@@ -738,7 +747,7 @@ public class GrammarParser {
             }
             if (next().type == Lexer.Token.TokenType.STRCON) {
                 TerminalSymbol strcon = new TerminalSymbol(now());
-                if (!Pattern.matches("^(?:[\\x20\\x21\\x28-\\x5B\\x5D-\\x7E]|\\\\n|%d)+$", now().value)
+                if (!Pattern.matches("^\"(?:[\\x20\\x21\\x28-\\x5B\\x5D-\\x7E]|\\\\n|%d)+\"$", now().value)
                         && onErrorProcessing) {
                     Logger.getLogger().addError(new Error(now().lineNum, "a"));
                     strcon.setCorrect(false);
@@ -773,6 +782,7 @@ public class GrammarParser {
                             peek(-1).lineNum));
                     rParent.setCorrect(false);
                     stmt.addChild(rParent);
+                    index--;
                 } else {
                     //error
                     throw new RuntimeException("Stmt error");
@@ -870,6 +880,7 @@ public class GrammarParser {
                                 ")", peek(-1).lineNum));
                         rParent.setCorrect(false);
                         stmt.addChild(rParent);
+                        index--;
                     } else {
                         //error
                         throw new RuntimeException("Stmt error");
@@ -971,6 +982,7 @@ public class GrammarParser {
                             peek(-1).lineNum));
                     rBrack.setCorrect(false);
                     lVal.addChild(rBrack);
+                    index--;
                 } else {
                     //error
                     throw new RuntimeException("LVal error");

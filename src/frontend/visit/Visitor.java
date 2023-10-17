@@ -90,8 +90,8 @@ public class Visitor {
                     Logger.getLogger().addError(new Error(ident.getToken().lineNum, "b"));
                     return;
                 }
-                int value = checkConstExp(children.get(2));
-                currentTable.addSymbol(new VarSymbol(currentTable, ident.getToken(), true, value));
+                values = checkConstInitVal(children.get(2));
+                currentTable.addSymbol(new VarSymbol(currentTable, ident.getToken(), true, values.get(0)));
                 break;
             case 1:
                 ident = (TerminalSymbol) children.get(0);
@@ -466,13 +466,6 @@ public class Visitor {
                     checkExp(unit);
                     break;
                 case LVal:
-                    TerminalSymbol ident = (TerminalSymbol) unit.getChildren().get(0);
-                    VarSymbol varSymbol = (VarSymbol) currentTable.getSymbol(ident.getToken().value);
-                    if (varSymbol == null) {
-                        Logger.getLogger().addError(new Error(ident.getToken().lineNum, "c"));
-                    } else if (varSymbol.isConst()) {
-                        Logger.getLogger().addError(new Error(ident.getToken().lineNum, "h"));
-                    }
                     checkLVal(unit);
                     if (children.get(2) instanceof GrammarUnit exp
                             && exp.getType() == GrammarUnit.GrammarUnitType.Exp) {
@@ -498,7 +491,7 @@ public class Visitor {
     }
 
     private int checkLVal(Node lVal) {
-        int dim;
+        int dim = -1;
         ArrayList<Node> children = lVal.getChildren();
         TerminalSymbol ident = (TerminalSymbol) children.get(0);
         Symbol symbol = currentTable.getSymbol(ident.getToken().value);
@@ -506,11 +499,28 @@ public class Visitor {
             Logger.getLogger().addError(new Error(ident.getToken().lineNum, "c"));
             return -1;
         }
-        dim = switch (symbol.getClass().getSimpleName()) {
-            case "VarSymbol" -> 0;
-            case "OneDimensionArraySymbol" -> 1;
-            case "TwoDimensionArraySymbol" -> 2;
-            default -> -1;
+        switch (symbol.getClass().getSimpleName()) {
+            case "VarSymbol":
+                dim = 0;
+                VarSymbol varSymbol = (VarSymbol) symbol;
+                if (varSymbol.isConst()) {
+                    Logger.getLogger().addError(new Error(ident.getToken().lineNum, "h"));
+                }
+                break;
+            case "OneDimensionArraySymbol":
+                dim = 1;
+                OneDimensionArraySymbol oneDimensionArraySymbol = (OneDimensionArraySymbol) symbol;
+                if (oneDimensionArraySymbol.isConst()) {
+                    Logger.getLogger().addError(new Error(ident.getToken().lineNum, "h"));
+                }
+                break;
+            case "TwoDimensionArraySymbol":
+                dim = 2;
+                TwoDimensionArraySymbol twoDimensionArraySymbol = (TwoDimensionArraySymbol) symbol;
+                if (twoDimensionArraySymbol.isConst()) {
+                    Logger.getLogger().addError(new Error(ident.getToken().lineNum, "h"));
+                }
+                break;
         };
         for (Node child : children) {
             if (child instanceof GrammarUnit exp

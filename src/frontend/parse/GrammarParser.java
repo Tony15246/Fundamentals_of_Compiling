@@ -14,7 +14,7 @@ public class GrammarParser {
     private int index;
     private int lastIndex;
     private int loop = 0;
-    private boolean onErrorProcessing = true;
+    private boolean onErrorProcessing;
 
     public ArrayList<String> getResult() {
         GrammarUnit compUnit = CompUnit();
@@ -747,7 +747,7 @@ public class GrammarParser {
             }
             if (next().type == Lexer.Token.TokenType.STRCON) {
                 TerminalSymbol strcon = new TerminalSymbol(now());
-                if (!Pattern.matches("^\"(?:[\\x20\\x21\\x28-\\x5B\\x5D-\\x7E]|\\\\n|%d)+\"$", now().value)
+                if (!Pattern.matches("^\"(?:[\\x20\\x21\\x28-\\x5B\\x5D-\\x7E]|\\\\n|%d)*\"$", now().value)
                         && onErrorProcessing) {
                     Logger.getLogger().addError(new Error(now().lineNum, "a"));
                     strcon.setCorrect(false);

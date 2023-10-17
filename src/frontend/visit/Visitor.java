@@ -466,7 +466,7 @@ public class Visitor {
                     checkExp(unit);
                     break;
                 case LVal:
-                    checkLVal(unit);
+                    checkLVal(unit, true);
                     if (children.get(2) instanceof GrammarUnit exp
                             && exp.getType() == GrammarUnit.GrammarUnitType.Exp) {
                         checkExp(exp);
@@ -478,7 +478,7 @@ public class Visitor {
 
     private void checkForStmt(Node forStmt) {
         ArrayList<Node> children = forStmt.getChildren();
-        checkLVal(children.get(0));
+        checkLVal(children.get(0), true);
         checkExp(children.get(2));
     }
 
@@ -490,7 +490,7 @@ public class Visitor {
         checkLOrExp(cond.getChildren().get(0));
     }
 
-    private int checkLVal(Node lVal) {
+    private int checkLVal(Node lVal, boolean fromAssign) {
         int dim = -1;
         ArrayList<Node> children = lVal.getChildren();
         TerminalSymbol ident = (TerminalSymbol) children.get(0);
@@ -503,21 +503,21 @@ public class Visitor {
             case "VarSymbol":
                 dim = 0;
                 VarSymbol varSymbol = (VarSymbol) symbol;
-                if (varSymbol.isConst()) {
+                if (varSymbol.isConst() && fromAssign) {
                     Logger.getLogger().addError(new Error(ident.getToken().lineNum, "h"));
                 }
                 break;
             case "OneDimensionArraySymbol":
                 dim = 1;
                 OneDimensionArraySymbol oneDimensionArraySymbol = (OneDimensionArraySymbol) symbol;
-                if (oneDimensionArraySymbol.isConst()) {
+                if (oneDimensionArraySymbol.isConst() && fromAssign) {
                     Logger.getLogger().addError(new Error(ident.getToken().lineNum, "h"));
                 }
                 break;
             case "TwoDimensionArraySymbol":
                 dim = 2;
                 TwoDimensionArraySymbol twoDimensionArraySymbol = (TwoDimensionArraySymbol) symbol;
-                if (twoDimensionArraySymbol.isConst()) {
+                if (twoDimensionArraySymbol.isConst() && fromAssign) {
                     Logger.getLogger().addError(new Error(ident.getToken().lineNum, "h"));
                 }
                 break;
@@ -539,7 +539,7 @@ public class Visitor {
             dim = checkExp(children.get(1));
         } else if (children.get(0) instanceof GrammarUnit lVal
                 && lVal.getType() == GrammarUnit.GrammarUnitType.LVal) {
-            dim = checkLVal(lVal);
+            dim = checkLVal(lVal, false);
         }
         return dim;
     }

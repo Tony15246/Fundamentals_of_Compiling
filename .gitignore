@@ -2,4 +2,7 @@
 out
 *.txt
 *.zip
-Fundamentals_of_Compiling.iml
+*.c
+*.h
+*.ll
+*.iml

@@ -31,6 +31,14 @@ public class FuncValue extends SymbolValue {
         return params;
     }
 
+    public String getRetypeString() {
+        return retype == 0 ? "void" : "i32";
+    }
+
+    public String getName() {
+        return getToken().value;
+    }
+
     public String getParamsString() {
         StringBuilder sb = new StringBuilder();
         for (Value param : params) {

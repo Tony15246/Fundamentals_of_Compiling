@@ -8,7 +8,6 @@ import java.util.ArrayList;
 
 public class FuncCallUser extends User{
     private final FuncValue funcValue;
-
     private final ArrayList<Value> params;	// 参数列表
     private final TempValue retValue;	// 返回值
 

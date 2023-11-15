@@ -13,6 +13,6 @@ public class StoreUser extends User{
 
     @Override
     public String toString(){
-        return "store i32" + srcValue.toString() + ", i32*" + dstValue.toString() + ", align 4";
+        return "store i32 " + srcValue.toString() + ", i32* " + dstValue.toString() + ", align 4";
     }
 }

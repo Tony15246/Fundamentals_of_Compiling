@@ -18,7 +18,7 @@ public class RetUser extends User {
         if (retValue == null) {
             return "ret void";
         } else {
-            return "ret " + retValue;
+            return "ret i32 " + retValue;
         }
     }
 }

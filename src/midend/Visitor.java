@@ -24,10 +24,19 @@ public class Visitor {
         return currentTable == rootTable;
     }
 
+    public User getRootUser() {
+        visit();
+        return rootUser;
+    }
+
     public void visit() {
         rootTable = new SymbolTable();
         currentTable = rootTable;
         rootUser = new User();
+        rootUser.addUser(new User("declare i32 @getint()"));
+        rootUser.addUser(new User("declare void @putint(i32)"));
+        rootUser.addUser(new User("declare void @putch(i32)"));
+        rootUser.addUser(new User("declare void @putstr(i8*)"));
         currentUser = rootUser;
         ArrayList<Node> children = rootNode.getChildren();
         for (Node child : children) {
@@ -215,6 +224,7 @@ public class Visitor {
         }
         tempCount = count;
         currentUser = rootUser;
+        currentTable = currentTable.getPre();
     }
 
     private void MainFuncDef(Node mainFuncDef) {
@@ -230,10 +240,11 @@ public class Visitor {
         currentUser.addUser(funcDefUser);
         currentUser = funcDefUser;
         int count = tempCount;
-        tempCount = 0;
+        tempCount = 1;
         Block(children.get(4));
         tempCount = count;
         currentUser = rootUser;
+        currentTable = currentTable.getPre();
     }
 
     private int FuncType(Node funcType) {
@@ -316,8 +327,11 @@ public class Visitor {
                     currentUser.addUser(printfUser);
                     break;
                 case RETURNTK:
-                    if (children.size() == 3){
+                    if (children.size() == 3) {
                         RetUser returnUser = new RetUser(Exp(children.get(1)));
+                        currentUser.addUser(returnUser);
+                    } else if (children.size() == 2) {
+                        RetUser returnUser = new RetUser();
                         currentUser.addUser(returnUser);
                     }
                     break;
@@ -342,7 +356,11 @@ public class Visitor {
                     Exp(children.get(0));
                     break;
                 case Block:
+                    SymbolTable temp = new SymbolTable();
+                    currentTable.addNext(temp);
+                    currentTable = temp;
                     Block(children.get(0));
+                    currentTable = currentTable.getPre();
                     break;
             }
         }
@@ -350,8 +368,7 @@ public class Visitor {
 
     private Value Exp(Node exp) {
         ArrayList<Node> children = exp.getChildren();
-//        return AddExp(children.get(0));
-        return null;
+        return AddExp(children.get(0));
     }
 
     private Value LVal(Node lVal, boolean isLVal) {
@@ -386,8 +403,135 @@ public class Visitor {
 
     private Value PrimaryExp(Node primaryExp) {
         ArrayList<Node> children = primaryExp.getChildren();
-        //todo
-        return null;
+        if (children.get(0) instanceof TerminalSymbol) {
+            return Exp(children.get(1));
+        } else if (children.get(0) instanceof GrammarUnit unit) {
+            if (unit.getType() == GrammarUnit.GrammarUnitType.LVal) {
+                return LVal(children.get(0), false);
+            } else if (unit.getType() == GrammarUnit.GrammarUnitType.Number) {
+                return Number(children.get(0));
+            }
+        }
+        throw new RuntimeException("unexpected form of PrimaryExp");
+    }
+
+    private Value Number(Node number) {
+        ArrayList<Node> children = number.getChildren();
+        return new IntConstValue(Integer.parseInt(((TerminalSymbol) children.get(0)).getToken().value));
+    }
+
+    private Value UnaryExp(Node unaryExp) {
+        ArrayList<Node> children = unaryExp.getChildren();
+        if (children.size() == 1) {
+            return PrimaryExp(children.get(0));
+        } else if (children.size() == 2) {
+            String op = UnaryOp(children.get(0));
+            Value rightValue = UnaryExp(children.get(1));
+            if (op.equals("-")) {
+                TempValue outputValue = new TempValue(tempCount++);
+                SubUser subUser = new SubUser(new IntConstValue(0), rightValue, outputValue);
+                currentUser.addUser(subUser);
+                return outputValue;
+            }
+            return rightValue;
+        } else if (children.size() == 3) {
+            TerminalSymbol ident = (TerminalSymbol) children.get(0);
+            FuncValue funcValue = (FuncValue) currentTable.getSymbol(ident.getToken().value);
+            if (funcValue.getRetype() == 0) {
+                FuncCallUser funcCallUser = new FuncCallUser(funcValue, new ArrayList<>());
+                currentUser.addUser(funcCallUser);
+                return null;
+            } else {
+                TempValue outputValue = new TempValue(tempCount++);
+                FuncCallUser funcCallUser = new FuncCallUser(funcValue, new ArrayList<>(), outputValue);
+                currentUser.addUser(funcCallUser);
+                return outputValue;
+            }
+        } else if (children.size() == 4) {
+            TerminalSymbol ident = (TerminalSymbol) children.get(0);
+            FuncValue funcValue = (FuncValue) currentTable.getSymbol(ident.getToken().value);
+            ArrayList<Value> params = FuncRParams(children.get(2));
+            if (funcValue.getRetype() == 0) {
+                FuncCallUser funcCallUser = new FuncCallUser(funcValue, params);
+                currentUser.addUser(funcCallUser);
+                return null;
+            } else {
+                TempValue outputValue = new TempValue(tempCount++);
+                FuncCallUser funcCallUser = new FuncCallUser(funcValue, params, outputValue);
+                currentUser.addUser(funcCallUser);
+                return outputValue;
+            }
+        }
+        throw new RuntimeException("unexpected form of UnaryExp");
+    }
+
+    private String UnaryOp(Node unaryOp) {
+        ArrayList<Node> children = unaryOp.getChildren();
+        return ((TerminalSymbol) children.get(0)).getToken().value;
+    }
+
+    private ArrayList<Value> FuncRParams(Node funcRParams) {
+        ArrayList<Node> children = funcRParams.getChildren();
+        ArrayList<Value> params = new ArrayList<>();
+        for (Node child : children) {
+            if (child instanceof GrammarUnit unit
+                    && unit.getType() == GrammarUnit.GrammarUnitType.Exp) {
+                params.add(Exp(child));
+            }
+        }
+        return params;
+    }
+
+    private Value MulExp(Node mulExp) {
+        ArrayList<Node> children = mulExp.getChildren();
+        if (children.size() == 1) {
+            return UnaryExp(children.get(0));
+        } else if (children.size() ==3) {
+            String op = ((TerminalSymbol) children.get(1)).getToken().value;
+            Value leftValue = MulExp(children.get(0));
+            Value rightValue = UnaryExp(children.get(2));
+            TempValue outputValue = new TempValue(tempCount++);
+            switch (op) {
+                case "*" -> {
+                    MulUser mulUser = new MulUser(leftValue, rightValue, outputValue);
+                    currentUser.addUser(mulUser);
+                }
+                case "/" -> {
+                    SdivUser divUser = new SdivUser(leftValue, rightValue, outputValue);
+                    currentUser.addUser(divUser);
+                }
+                case "%" -> {
+                    SremUser modUser = new SremUser(leftValue, rightValue, outputValue);
+                    currentUser.addUser(modUser);
+                }
+            }
+            return outputValue;
+        }
+        throw new RuntimeException("unexpected form of MulExp");
+    }
+
+    private Value AddExp(Node addExp) {
+        ArrayList<Node> children = addExp.getChildren();
+        if (children.size() == 1) {
+            return MulExp(children.get(0));
+        } else if (children.size() == 3) {
+            String op = ((TerminalSymbol) children.get(1)).getToken().value;
+            Value leftValue = AddExp(children.get(0));
+            Value rightValue = MulExp(children.get(2));
+            TempValue outputValue = new TempValue(tempCount++);
+            switch (op) {
+                case "+" -> {
+                    AddUser addUser = new AddUser(leftValue, rightValue, outputValue);
+                    currentUser.addUser(addUser);
+                }
+                case "-" -> {
+                    SubUser subUser = new SubUser(leftValue, rightValue, outputValue);
+                    currentUser.addUser(subUser);
+                }
+            }
+            return outputValue;
+        }
+        throw new RuntimeException("unexpected form of AddExp");
     }
 
     private Value calNode(Node node) {

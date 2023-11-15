@@ -13,6 +13,10 @@ public class GrammarParser {
         return result;
     }
 
+    public Node getAstRoot() {
+        return CompUnit();
+    }
+
     public GrammarParser(ArrayList<Lexer.Token> tokens) {
         this.tokens = tokens;
         this.index = -1;

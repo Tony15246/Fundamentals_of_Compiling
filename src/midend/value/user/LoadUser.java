@@ -13,6 +13,6 @@ public class LoadUser extends User{
 
     @Override
     public String toString(){
-        return outputValue.toString() + " = load i32, i32*" + srcValue.toString() + ", align 4";
+        return outputValue.toString() + " = load i32, i32* " + srcValue.toString() + ", align 4";
     }
 }

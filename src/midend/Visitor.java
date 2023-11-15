@@ -264,7 +264,9 @@ public class Visitor {
         for (Node child : children) {
             if (child instanceof GrammarUnit unit
                     && unit.getType() == GrammarUnit.GrammarUnitType.FuncFParam) {
-                params.add(FuncFParam(child));
+                VarValue param = (VarValue) FuncFParam(child);
+                params.add(param.getTempVar());
+                currentTable.addSymbol(param);
             }
         }
         return params;
@@ -278,6 +280,7 @@ public class Visitor {
             case 2:
                 TempValue paramValue = new TempValue(tempCount++);
                 param = new VarValue(currentTable, ident.getToken(), false, null);
+                param.setValue(paramValue);
                 param.setTempVar(paramValue);
                 break;
             default:
@@ -383,16 +386,21 @@ public class Visitor {
                         AllocUser allocUser = new AllocUser(pointer);
                         currentUser.addUser(allocUser);
                         varValue.setPointer(pointer);
-                        varValue.setTempVar(null);
                     }
                     return varValue.getPointer();
                 } else {
-                    if (varValue.getTempVar() == null) {
-                        TempValue tempVar = new TempValue(tempCount++);
-                        LoadUser loadUser = new LoadUser(varValue.getPointer(), tempVar);
-                        currentUser.addUser(loadUser);
-                        varValue.setTempVar(tempVar);
+                    if (varValue.getPointer() == null) {
+                        TempValue pointer = new TempValue(tempCount++);
+                        AllocUser allocUser = new AllocUser(pointer);
+                        currentUser.addUser(allocUser);
+                        varValue.setPointer(pointer);
+                        StoreUser storeUser = new StoreUser(varValue.getValue(), pointer);
+                        currentUser.addUser(storeUser);
                     }
+                    TempValue tempVar = new TempValue(tempCount++);
+                    LoadUser loadUser = new LoadUser(varValue.getPointer(), tempVar);
+                    currentUser.addUser(loadUser);
+                    varValue.setTempVar(tempVar);
                     return varValue.getTempVar();
                 }
             case 4, 7:
@@ -486,7 +494,7 @@ public class Visitor {
         ArrayList<Node> children = mulExp.getChildren();
         if (children.size() == 1) {
             return UnaryExp(children.get(0));
-        } else if (children.size() ==3) {
+        } else if (children.size() == 3) {
             String op = ((TerminalSymbol) children.get(1)).getToken().value;
             Value leftValue = MulExp(children.get(0));
             Value rightValue = UnaryExp(children.get(2));

@@ -27,7 +27,7 @@ public class FuncCallUser extends User{
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (Value param : params) {
-            sb.append(param.toString()).append(", ");
+            sb.append("i32 ").append(param.toString()).append(", ");
         }
         if (!sb.isEmpty()) {
             sb.delete(sb.length() - 2, sb.length());

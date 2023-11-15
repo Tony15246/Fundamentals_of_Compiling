@@ -42,7 +42,7 @@ public class FuncValue extends SymbolValue {
     public String getParamsString() {
         StringBuilder sb = new StringBuilder();
         for (Value param : params) {
-            sb.append(param.toString()).append(", ");
+            sb.append("i32 ").append(param.toString()).append(", ");
         }
         if (!sb.isEmpty()) {
             sb.delete(sb.length() - 2, sb.length());

@@ -16,6 +16,10 @@ public class PrintfUser extends User{
         args.add(arg);
     }
 
+    public void addArgs(ArrayList<Value> args){
+        this.args.addAll(args);
+    }
+
     @Override
     public String toString(){
         StringBuilder sb = new StringBuilder();
@@ -23,12 +27,12 @@ public class PrintfUser extends User{
             char currentChar = format.charAt(i);
             if (currentChar == '%') {
                 i++;
-                sb.append("call void @putint(i32 ").append(args.remove(0).toString()).append(")");
+                sb.append("call void @putint(i32 ").append(args.remove(0).toString()).append(")\n");
             } else if (currentChar == '\\') {
                 i++;
-                sb.append("call void @putch(i32 10)");
+                sb.append("call void @putch(i32 10)\n");
             } else {
-                sb.append("call void @putch(i32 ").append((int) currentChar).append(")");
+                sb.append("call void @putch(i32 ").append((int) currentChar).append(")\n");
             }
         }
         return sb.toString();

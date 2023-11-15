@@ -1,6 +1,6 @@
 package midend.value;
 
-public class TempValue {
+public class TempValue extends Value {
     private final int varNumber;            // 当前局部变量的标识符编号。
 
     public TempValue(int varNumber) {

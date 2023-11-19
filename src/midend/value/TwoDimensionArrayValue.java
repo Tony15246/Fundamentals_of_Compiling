@@ -5,25 +5,39 @@ import midend.SymbolTable;
 
 import java.util.ArrayList;
 
-public class TwoDimensionArrayValue extends SymbolValue{
+public class TwoDimensionArrayValue extends SymbolValue {
     private final boolean isConst;
-    private final int dim1;	// 一维数组的大小
-    private final int dim2;	// 二维数组的大小
-    private ArrayList<Integer> values;
+    private final Integer dim1;    // 一维数组的大小
+    private final Integer dim2;    // 二维数组的大小
+    private ArrayList<Value> values;
+    private Value pointer;
 
-    public TwoDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, int dim1, int dim2) {
+    public TwoDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, Integer dim1, Integer dim2, Value pointer) {
         super(table, token);
         this.isConst = isConst;
         this.dim1 = dim1;
         this.dim2 = dim2;
+        this.pointer = pointer;
+        this.values = null;
+        if (dim1 != null) {
+            setType("[" + this.dim1 + " x [" + this.dim2 + " x i32]]");
+        } else {
+            setType("[" + this.dim2 + " x i32]*");
+        }
     }
 
-    public TwoDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, int dim1, int dim2, ArrayList<Integer> values) {
+    public TwoDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, Integer dim1, Integer dim2) {
         super(table, token);
         this.isConst = isConst;
         this.dim1 = dim1;
         this.dim2 = dim2;
-        this.values = values;
+        this.pointer = new GlobalVarPointerValue(token.value);
+        this.values = null;
+        if (dim1 != null) {
+            setType("[" + this.dim1 + " x [" + this.dim2 + " x i32]]");
+        } else {
+            setType("[" + this.dim2 + " x i32]*");
+        }
     }
 
     public boolean isConst() {
@@ -38,7 +52,19 @@ public class TwoDimensionArrayValue extends SymbolValue{
         return dim2;
     }
 
-    public ArrayList<Integer> getValues() {
+    public Value getPointer() {
+        return pointer;
+    }
+
+    public void setPointer(Value pointer) {
+        this.pointer = pointer;
+    }
+
+    public void setValues(ArrayList<Value> values) {
+        this.values = values;
+    }
+
+    public ArrayList<Value> getValues() {
         return values;
     }
 }

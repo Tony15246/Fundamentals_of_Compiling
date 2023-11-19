@@ -13,6 +13,7 @@ public class StoreUser extends User{
 
     @Override
     public String toString(){
-        return "store i32 " + srcValue.toString() + ", i32* " + dstValue.toString() + ", align 4";
+        //todo: 这里只考虑了int类型的参数
+        return "store i32 " + srcValue.toString() + ", i32* " + dstValue.toString();
     }
 }

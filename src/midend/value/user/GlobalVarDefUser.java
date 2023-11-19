@@ -11,10 +11,11 @@ public class GlobalVarDefUser extends User{
 
     @Override
     public String toString() {
+        //todo: 这里只考虑了int类型的参数
         if (globalVar.isConst()) {
-            return globalVar.getPointer().toString() + " = constant i32 " + globalVar.getValue() + ", align 4";
+            return globalVar.getPointer().toString() + " = constant i32 " + globalVar.getValue();
         } else {
-            return globalVar.getPointer().toString() + " = global i32 " + globalVar.getValue() + ", align 4";
+            return globalVar.getPointer().toString() + " = global i32 " + globalVar.getValue();
         }
     }
 }

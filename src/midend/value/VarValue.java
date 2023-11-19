@@ -15,6 +15,7 @@ public class VarValue extends SymbolValue{
         this.tempVar = null;
         this.pointer = pointer;
         this.value = null;
+        setType("i32");
     }
 
     public VarValue(SymbolTable table, Lexer.Token token, boolean isConst) {
@@ -23,6 +24,7 @@ public class VarValue extends SymbolValue{
         this.tempVar = null;
         this.pointer = new GlobalVarPointerValue(token.value);
         this.value = null;
+        setType("i32");
     }
 
     public boolean isConst() {

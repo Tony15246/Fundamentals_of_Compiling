@@ -27,6 +27,7 @@ public class FuncCallUser extends User{
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (Value param : params) {
+            //todo: 这里只考虑了int类型的参数
             sb.append("i32 ").append(param.toString()).append(", ");
         }
         if (!sb.isEmpty()) {

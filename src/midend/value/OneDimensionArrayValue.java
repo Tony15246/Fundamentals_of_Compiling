@@ -7,20 +7,34 @@ import java.util.ArrayList;
 
 public class OneDimensionArrayValue extends SymbolValue{
     private final boolean isConst;
-    private final int dim1;	// 一维数组的大小
-    private ArrayList<Integer> values;
+    private final Integer dim1;	// 一维数组的大小
+    private ArrayList<Value> values;
+    private Value pointer;
 
-    public OneDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, int dim1) {
+    public OneDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, Integer dim1, Value pointer) {
         super(table, token);
         this.isConst = isConst;
         this.dim1 = dim1;
+        this.pointer = pointer;
+        this.values = null;
+        if (dim1 != null) {
+            setType("[" + this.dim1 + " x i32]");
+        } else {
+            setType("i32*");
+        }
     }
 
-    public OneDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, int dim1, ArrayList<Integer> values) {
+    public OneDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, Integer dim1) {
         super(table, token);
         this.isConst = isConst;
         this.dim1 = dim1;
-        this.values = values;
+        this.values = null;
+        this.pointer = new GlobalVarPointerValue(token.value);
+        if (dim1 != null) {
+            setType("[" + this.dim1 + " x i32]");
+        } else {
+            setType("i32*");
+        }
     }
 
     public boolean isConst() {
@@ -31,7 +45,19 @@ public class OneDimensionArrayValue extends SymbolValue{
         return dim1;
     }
 
-    public ArrayList<Integer> getValues() {
+    public Value getPointer() {
+        return pointer;
+    }
+
+    public void setPointer(Value pointer) {
+        this.pointer = pointer;
+    }
+
+    public void setValues(ArrayList<Value> values) {
+        this.values = values;
+    }
+
+    public ArrayList<Value> getValues() {
         return values;
     }
 }

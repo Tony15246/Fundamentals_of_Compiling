@@ -212,7 +212,6 @@ public class Visitor {
         tempCount = 0;
         if (children.get(3) instanceof GrammarUnit) {
             funcValue.addParam(FuncFParams(children.get(3)));
-            tempCount++;
             Block(children.get(5));
         } else {
             tempCount++;
@@ -260,16 +259,32 @@ public class Visitor {
 
     private ArrayList<Value> FuncFParams(Node funcFParams) {
         ArrayList<Value> params = new ArrayList<>();
+        ArrayList<Value> paramsTempVar = new ArrayList<>();
         ArrayList<Node> children = funcFParams.getChildren();
         for (Node child : children) {
             if (child instanceof GrammarUnit unit
                     && unit.getType() == GrammarUnit.GrammarUnitType.FuncFParam) {
-                VarValue param = (VarValue) FuncFParam(child);
-                params.add(param.getTempVar());
-                currentTable.addSymbol(param);
+                Value param = FuncFParam(child);
+                //todo: array
+                if (param instanceof VarValue varValue) {
+                    params.add(varValue);
+                    paramsTempVar.add(varValue.getTempVar());
+                    currentTable.addSymbol(varValue);
+                }
             }
         }
-        return params;
+        tempCount++;
+        for (Value i : params) {
+            if (i instanceof VarValue param) {
+                TempValue pointer = new TempPointerValue(tempCount++);
+                param.setPointer(pointer);
+                AllocUser allocUser = new AllocUser(pointer);
+                currentUser.addUser(allocUser);
+                StoreUser storeUser = new StoreUser(param.getTempVar(), pointer);
+                currentUser.addUser(storeUser);
+            }
+        }
+        return paramsTempVar;
     }
 
     private Value FuncFParam(Node funcFParam) {
@@ -279,13 +294,13 @@ public class Visitor {
         switch (children.size()) {
             case 2:
                 TempValue paramValue = new TempValue(tempCount++);
-                TempValue pointer = new TempPointerValue(tempCount++);
-                AllocUser allocUser = new AllocUser(pointer);
-                currentUser.addUser(allocUser);
-                param = new VarValue(currentTable, ident.getToken(), false, pointer);
+//                TempValue pointer = new TempPointerValue(tempCount++);
+//                AllocUser allocUser = new AllocUser(pointer);
+//                currentUser.addUser(allocUser);
+                param = new VarValue(currentTable, ident.getToken(), false, null);
                 param.setTempVar(paramValue);
-                StoreUser storeUser = new StoreUser(paramValue, pointer);
-                currentUser.addUser(storeUser);
+//                StoreUser storeUser = new StoreUser(paramValue, pointer);
+//                currentUser.addUser(storeUser);
                 break;
             default:
                 throw new RuntimeException("no support for array yet");

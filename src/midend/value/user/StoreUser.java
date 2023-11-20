@@ -13,6 +13,6 @@ public class StoreUser extends User {
 
     @Override
     public String toString() {
-        return "store " + srcValue.getType() + " " + srcValue.toString() + ", " + dstValue.getType() + " " + dstValue.toString();
+        return "store " + srcValue.getType() + " " + srcValue + ", " + dstValue.getType() + " " + dstValue;
     }
 }

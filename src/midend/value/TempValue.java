@@ -9,7 +9,11 @@ public class TempValue extends Value {
     }
 
     public String getType() {
-        return value.getType();
+        if (value != null) {
+            return value.getType();
+        } else {
+            return "i32";
+        }
     }
 
     public Value getValue() {

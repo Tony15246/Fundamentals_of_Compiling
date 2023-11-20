@@ -103,7 +103,7 @@ public class Visitor {
                     currentUser.addUser(globalVarDefUser);
                 } else {
                     ident = (TerminalSymbol) children.get(0);
-                    TempValue pointer = new TempValue(tempCount++);
+                    TempValue pointer = new TempPointerValue(tempCount++);
                     AllocUser allocUser = new AllocUser(pointer);
                     currentUser.addUser(allocUser);
                     varValue = new VarValue(currentTable, ident.getToken(), true, pointer);
@@ -164,7 +164,7 @@ public class Visitor {
                     currentUser.addUser(globalVarDefUser);
                 } else {
                     ident = (TerminalSymbol) children.get(0);
-                    TempValue pointer = new TempValue(tempCount++);
+                    TempValue pointer = new TempPointerValue(tempCount++);
                     AllocUser allocUser = new AllocUser(pointer);
                     currentUser.addUser(allocUser);
                     varValue = new VarValue(currentTable, ident.getToken(), false, pointer);
@@ -279,9 +279,13 @@ public class Visitor {
         switch (children.size()) {
             case 2:
                 TempValue paramValue = new TempValue(tempCount++);
-                param = new VarValue(currentTable, ident.getToken(), false, null);
-                param.setValue(paramValue);
+                TempValue pointer = new TempPointerValue(tempCount++);
+                AllocUser allocUser = new AllocUser(pointer);
+                currentUser.addUser(allocUser);
+                param = new VarValue(currentTable, ident.getToken(), false, pointer);
                 param.setTempVar(paramValue);
+                StoreUser storeUser = new StoreUser(paramValue, pointer);
+                currentUser.addUser(storeUser);
                 break;
             default:
                 throw new RuntimeException("no support for array yet");
@@ -381,26 +385,12 @@ public class Visitor {
             case 1:
                 VarValue varValue = (VarValue) currentTable.getSymbol(ident.getToken().value);
                 if (isLVal) {
-                    if (varValue.getPointer() == null) {
-                        TempValue pointer = new TempValue(tempCount++);
-                        AllocUser allocUser = new AllocUser(pointer);
-                        currentUser.addUser(allocUser);
-                        varValue.setPointer(pointer);
-                    }
                     return varValue.getPointer();
                 } else {
-                    if (varValue.getPointer() == null) {
-                        TempValue pointer = new TempValue(tempCount++);
-                        AllocUser allocUser = new AllocUser(pointer);
-                        currentUser.addUser(allocUser);
-                        varValue.setPointer(pointer);
-                        StoreUser storeUser = new StoreUser(varValue.getValue(), pointer);
-                        currentUser.addUser(storeUser);
-                    }
                     TempValue tempVar = new TempValue(tempCount++);
+                    varValue.setTempVar(tempVar);
                     LoadUser loadUser = new LoadUser(varValue.getPointer(), tempVar);
                     currentUser.addUser(loadUser);
-                    varValue.setTempVar(tempVar);
                     return varValue.getTempVar();
                 }
             case 4, 7:
@@ -452,6 +442,7 @@ public class Visitor {
             } else {
                 TempValue outputValue = new TempValue(tempCount++);
                 FuncCallUser funcCallUser = new FuncCallUser(funcValue, new ArrayList<>(), outputValue);
+                outputValue.setValue(funcValue);
                 currentUser.addUser(funcCallUser);
                 return outputValue;
             }
@@ -466,6 +457,7 @@ public class Visitor {
             } else {
                 TempValue outputValue = new TempValue(tempCount++);
                 FuncCallUser funcCallUser = new FuncCallUser(funcValue, params, outputValue);
+                outputValue.setValue(funcValue);
                 currentUser.addUser(funcCallUser);
                 return outputValue;
             }

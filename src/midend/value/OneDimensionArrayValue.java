@@ -9,13 +9,14 @@ public class OneDimensionArrayValue extends SymbolValue{
     private final boolean isConst;
     private final Integer dim1;	// 一维数组的大小
     private ArrayList<Value> values;
-    private Value pointer;
+    private final Value pointer;
 
     public OneDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, Integer dim1, Value pointer) {
         super(table, token);
         this.isConst = isConst;
         this.dim1 = dim1;
         this.pointer = pointer;
+        ((TempPointerValue)pointer).setValue(this);
         this.values = null;
         if (dim1 != null) {
             setType("[" + this.dim1 + " x i32]");
@@ -29,7 +30,7 @@ public class OneDimensionArrayValue extends SymbolValue{
         this.isConst = isConst;
         this.dim1 = dim1;
         this.values = null;
-        this.pointer = new GlobalVarPointerValue(token.value);
+        this.pointer = new GlobalVarPointerValue(token.value, this);
         if (dim1 != null) {
             setType("[" + this.dim1 + " x i32]");
         } else {
@@ -47,10 +48,6 @@ public class OneDimensionArrayValue extends SymbolValue{
 
     public Value getPointer() {
         return pointer;
-    }
-
-    public void setPointer(Value pointer) {
-        this.pointer = pointer;
     }
 
     public void setValues(ArrayList<Value> values) {

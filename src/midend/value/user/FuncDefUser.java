@@ -17,7 +17,7 @@ public class FuncDefUser extends User {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("define ");
-        sb.append(funcValue.getRetypeString());
+        sb.append(funcValue.getType());
         sb.append(" @");
         sb.append(funcValue.getName());
         sb.append("(");

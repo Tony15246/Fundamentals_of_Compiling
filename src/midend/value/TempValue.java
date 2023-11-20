@@ -2,9 +2,22 @@ package midend.value;
 
 public class TempValue extends Value {
     private final int varNumber;            // 当前局部变量的标识符编号。
+    private Value value;                    // 当前局部变量指向的变量
 
     public TempValue(int varNumber) {
         this.varNumber = varNumber;
+    }
+
+    public String getType() {
+        return value.getType();
+    }
+
+    public Value getValue() {
+        return value;
+    }
+
+    public void setValue(Value value) {
+        this.value = value;
     }
 
     @Override

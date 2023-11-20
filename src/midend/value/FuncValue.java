@@ -31,7 +31,7 @@ public class FuncValue extends SymbolValue {
         return params;
     }
 
-    public String getRetypeString() {
+    public String getType() {
         return retype == 0 ? "void" : "i32";
     }
 
@@ -42,8 +42,7 @@ public class FuncValue extends SymbolValue {
     public String getParamsString() {
         StringBuilder sb = new StringBuilder();
         for (Value param : params) {
-            //todo: 这里只考虑了int类型的参数
-            sb.append("i32 ").append(param.toString()).append(", ");
+            sb.append(param.getType()).append(" ").append(param).append(", ");
         }
         if (!sb.isEmpty()) {
             sb.delete(sb.length() - 2, sb.length());

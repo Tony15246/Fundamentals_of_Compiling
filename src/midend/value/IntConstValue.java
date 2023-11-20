@@ -5,6 +5,7 @@ public class IntConstValue extends Value{
 
     public IntConstValue(int value) {
         this.value = value;
+        setType("i32");
     }
 
     public int getValue() {

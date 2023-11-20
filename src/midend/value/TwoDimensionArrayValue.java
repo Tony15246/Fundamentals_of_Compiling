@@ -10,7 +10,7 @@ public class TwoDimensionArrayValue extends SymbolValue {
     private final Integer dim1;    // 一维数组的大小
     private final Integer dim2;    // 二维数组的大小
     private ArrayList<Value> values;
-    private Value pointer;
+    private final Value pointer;
 
     public TwoDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, Integer dim1, Integer dim2, Value pointer) {
         super(table, token);
@@ -18,6 +18,7 @@ public class TwoDimensionArrayValue extends SymbolValue {
         this.dim1 = dim1;
         this.dim2 = dim2;
         this.pointer = pointer;
+        ((TempPointerValue)pointer).setValue(this);
         this.values = null;
         if (dim1 != null) {
             setType("[" + this.dim1 + " x [" + this.dim2 + " x i32]]");
@@ -31,7 +32,7 @@ public class TwoDimensionArrayValue extends SymbolValue {
         this.isConst = isConst;
         this.dim1 = dim1;
         this.dim2 = dim2;
-        this.pointer = new GlobalVarPointerValue(token.value);
+        this.pointer = new GlobalVarPointerValue(token.value, this);
         this.values = null;
         if (dim1 != null) {
             setType("[" + this.dim1 + " x [" + this.dim2 + " x i32]]");
@@ -54,10 +55,6 @@ public class TwoDimensionArrayValue extends SymbolValue {
 
     public Value getPointer() {
         return pointer;
-    }
-
-    public void setPointer(Value pointer) {
-        this.pointer = pointer;
     }
 
     public void setValues(ArrayList<Value> values) {

@@ -5,8 +5,8 @@ import midend.SymbolTable;
 
 public class VarValue extends SymbolValue{
     private final boolean isConst;
-    private Value tempVar;//存储变量在当前作用域值的局部变量，即load命令的结果
-    private Value pointer;//存储为局部变量开辟的空间的指针，即alloc命令的结果，store命令的第二个参数
+    private TempValue tempVar;//存储变量在当前作用域值的局部变量，即load命令的结果
+    private final Value pointer;//存储为局部变量开辟的空间的指针，即alloc命令的结果，store命令的第二个参数
     private Value value;//存储变量的值，即store命令的第一个参数
 
     public VarValue(SymbolTable table, Lexer.Token token, boolean isConst, Value pointer) {
@@ -14,6 +14,7 @@ public class VarValue extends SymbolValue{
         this.isConst = isConst;
         this.tempVar = null;
         this.pointer = pointer;
+        ((TempPointerValue)pointer).setValue(this);
         this.value = null;
         setType("i32");
     }
@@ -22,7 +23,7 @@ public class VarValue extends SymbolValue{
         super(table, token);
         this.isConst = isConst;
         this.tempVar = null;
-        this.pointer = new GlobalVarPointerValue(token.value);
+        this.pointer = new GlobalVarPointerValue(token.value, this);
         this.value = null;
         setType("i32");
     }
@@ -43,16 +44,13 @@ public class VarValue extends SymbolValue{
         return pointer;
     }
 
-    public void setPointer(Value pointer) {
-        this.pointer = pointer;
-    }
-
     public Value getTempVar() {
         return tempVar;
     }
 
-    public void setTempVar(Value tempVar) {
+    public void setTempVar(TempValue tempVar) {
         this.tempVar = tempVar;
+        tempVar.setValue(this);
     }
 
     @Override

@@ -1,17 +1,17 @@
 package midend.value.user;
 
+import midend.value.TempValue;
 import midend.value.Value;
 
 public class AllocUser extends User{
-    private Value outputValue;
+    private final TempValue pointer;
 
-    public AllocUser(Value outputValue){
-        this.outputValue = outputValue;
+    public AllocUser(TempValue pointer){
+        this.pointer = pointer;
     }
 
     @Override
     public String toString(){
-        //todo: 这里只考虑了int类型的参数
-        return outputValue.toString() + " = alloca i32";
+        return pointer.toString() + " = alloca " + pointer.getValue().getType();
     }
 }

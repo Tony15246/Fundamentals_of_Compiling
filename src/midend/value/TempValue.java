@@ -12,7 +12,7 @@ public class TempValue extends Value {
         if (value != null) {
             return value.getType();
         } else {
-            return "i32";
+            return super.getType();
         }
     }
 

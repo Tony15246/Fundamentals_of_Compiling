@@ -294,13 +294,8 @@ public class Visitor {
         switch (children.size()) {
             case 2:
                 TempValue paramValue = new TempValue(tempCount++);
-//                TempValue pointer = new TempPointerValue(tempCount++);
-//                AllocUser allocUser = new AllocUser(pointer);
-//                currentUser.addUser(allocUser);
                 param = new VarValue(currentTable, ident.getToken(), false, null);
                 param.setTempVar(paramValue);
-//                StoreUser storeUser = new StoreUser(paramValue, pointer);
-//                currentUser.addUser(storeUser);
                 break;
             default:
                 throw new RuntimeException("no support for array yet");
@@ -365,6 +360,7 @@ public class Visitor {
                 case LVal:
                     if (children.size() == 6) {
                         TempValue newValue = new TempValue(tempCount++);
+                        newValue.setType("i32");
                         GetintUser getintUser = new GetintUser(newValue);
                         currentUser.addUser(getintUser);
                         StoreUser storeUser = new StoreUser(newValue, LVal(children.get(0), true));
@@ -442,6 +438,7 @@ public class Visitor {
             Value rightValue = UnaryExp(children.get(1));
             if (op.equals("-")) {
                 TempValue outputValue = new TempValue(tempCount++);
+                outputValue.setType("i32");
                 SubUser subUser = new SubUser(new IntConstValue(0), rightValue, outputValue);
                 currentUser.addUser(subUser);
                 return outputValue;
@@ -506,6 +503,7 @@ public class Visitor {
             Value leftValue = MulExp(children.get(0));
             Value rightValue = UnaryExp(children.get(2));
             TempValue outputValue = new TempValue(tempCount++);
+            outputValue.setType("i32");
             switch (op) {
                 case "*" -> {
                     MulUser mulUser = new MulUser(leftValue, rightValue, outputValue);
@@ -534,6 +532,7 @@ public class Visitor {
             Value leftValue = AddExp(children.get(0));
             Value rightValue = MulExp(children.get(2));
             TempValue outputValue = new TempValue(tempCount++);
+            outputValue.setType("i32");
             switch (op) {
                 case "+" -> {
                     AddUser addUser = new AddUser(leftValue, rightValue, outputValue);

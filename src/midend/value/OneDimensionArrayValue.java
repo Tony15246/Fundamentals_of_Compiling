@@ -9,14 +9,16 @@ public class OneDimensionArrayValue extends SymbolValue{
     private final boolean isConst;
     private final Integer dim1;	// 一维数组的大小
     private ArrayList<Value> values;
-    private final Value pointer;
+    private Value pointer;
 
     public OneDimensionArrayValue(SymbolTable table, Lexer.Token token, boolean isConst, Integer dim1, Value pointer) {
         super(table, token);
         this.isConst = isConst;
         this.dim1 = dim1;
         this.pointer = pointer;
-        ((TempPointerValue)pointer).setValue(this);
+        if (pointer != null) {
+            pointer.setValue(this);
+        }
         this.values = null;
         if (dim1 != null) {
             setType("[" + this.dim1 + " x i32]");
@@ -50,11 +52,41 @@ public class OneDimensionArrayValue extends SymbolValue{
         return pointer;
     }
 
+    public void setPointer(Value pointer) {
+        this.pointer = pointer;
+        pointer.setValue(this);
+    }
+
     public void setValues(ArrayList<Value> values) {
         this.values = values;
     }
 
     public ArrayList<Value> getValues() {
         return values;
+    }
+
+    public String getValuesString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        sb.append(dim1);
+        sb.append(" x i32] ");
+        if (values == null) {
+            sb.append("zeroinitializer");
+            return sb.toString();
+        }
+        sb.append("[");
+        for (int i = 0; i < values.size(); i++) {
+            if (i != 0) {
+                sb.append(", ");
+            }
+            if (i < dim1) {
+                sb.append("i32 ");
+                sb.append(values.get(i).toString());
+            } else {
+                sb.append("i32 0");
+            }
+        }
+        sb.append("]");
+        return sb.toString();
     }
 }

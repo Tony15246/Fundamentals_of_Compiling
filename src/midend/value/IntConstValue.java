@@ -1,19 +1,19 @@
 package midend.value;
 
 public class IntConstValue extends Value{
-    private final int value;
+    private final int number;
 
-    public IntConstValue(int value) {
-        this.value = value;
+    public IntConstValue(int number) {
+        this.number = number;
         setType("i32");
     }
 
-    public int getValue() {
-        return value;
+    public int getNumber() {
+        return number;
     }
 
     @Override
     public String toString() {
-        return Integer.toString(value);
+        return Integer.toString(number);
     }
 }

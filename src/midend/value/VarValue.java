@@ -14,8 +14,8 @@ public class VarValue extends SymbolValue{
         this.isConst = isConst;
         this.tempVar = null;
         this.pointer = pointer;
-        if (pointer instanceof TempPointerValue){
-            ((TempPointerValue) pointer).setValue(this);
+        if (pointer != null) {
+            pointer.setValue(this);
         }
         this.value = null;
         setType("i32");
@@ -48,7 +48,7 @@ public class VarValue extends SymbolValue{
 
     public void setPointer(Value pointer) {
         this.pointer = pointer;
-        ((TempPointerValue)pointer).setValue(this);
+        pointer.setValue(this);
     }
 
     public Value getTempVar() {

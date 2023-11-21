@@ -577,9 +577,9 @@ public class Visitor {
                         IntConstValue value = (IntConstValue) calNode(unit.getChildren().get(1));
                         assert value != null;
                         if (op.equals("-")) {
-                            return new IntConstValue(-value.getValue());
+                            return new IntConstValue(-value.getNumber());
                         } else if (op.equals("+")) {
-                            return new IntConstValue(value.getValue());
+                            return new IntConstValue(value.getNumber());
                         } else {
                             throw new RuntimeException("unknown unary op");
                         }
@@ -596,11 +596,11 @@ public class Visitor {
                         assert left != null;
                         assert right != null;
                         if (op.equals("*")) {
-                            return new IntConstValue(left.getValue() * right.getValue());
+                            return new IntConstValue(left.getNumber() * right.getNumber());
                         } else if (op.equals("/")) {
-                            return new IntConstValue(left.getValue() / right.getValue());
+                            return new IntConstValue(left.getNumber() / right.getNumber());
                         } else if (op.equals("%")) {
-                            return new IntConstValue(left.getValue() % right.getValue());
+                            return new IntConstValue(left.getNumber() % right.getNumber());
                         } else {
                             throw new RuntimeException("unknown mul op");
                         }
@@ -615,9 +615,9 @@ public class Visitor {
                         assert left != null;
                         assert right != null;
                         if (op.equals("+")) {
-                            return new IntConstValue(left.getValue() + right.getValue());
+                            return new IntConstValue(left.getNumber() + right.getNumber());
                         } else if (op.equals("-")) {
-                            return new IntConstValue(left.getValue() - right.getValue());
+                            return new IntConstValue(left.getNumber() - right.getNumber());
                         } else {
                             throw new RuntimeException("unknown add op");
                         }

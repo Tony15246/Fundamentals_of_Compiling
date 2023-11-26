@@ -84,7 +84,9 @@ public class Visitor {
     private void ConstDef(Node constDef) {
         ArrayList<Node> children = constDef.getChildren();
         int dim = 0;
-        TerminalSymbol ident;
+        TerminalSymbol ident = (TerminalSymbol) children.get(0);
+        int dim1;
+        int dim2;
         VarValue varValue;
         for (Node child : children) {
             if (child instanceof GrammarUnit unit
@@ -95,37 +97,100 @@ public class Visitor {
         switch (dim) {
             case 0:
                 if (isGlobal()) {
-                    ident = (TerminalSymbol) children.get(0);
                     varValue = new VarValue(currentTable, ident.getToken(), true);
-                    varValue.setValue(ConstInitVal(children.get(2)));
+                    varValue.setValue(ConstInitVal(children.get(2)).get(0));
                     currentTable.addSymbol(varValue);
                     GlobalVarDefUser globalVarDefUser = new GlobalVarDefUser(varValue);
                     currentUser.addUser(globalVarDefUser);
                 } else {
-                    ident = (TerminalSymbol) children.get(0);
                     TempValue pointer = new TempPointerValue(tempCount++);
                     AllocUser allocUser = new AllocUser(pointer);
                     currentUser.addUser(allocUser);
                     varValue = new VarValue(currentTable, ident.getToken(), true, pointer);
-                    Value srcValue = ConstInitVal(children.get(2));
+                    Value srcValue = ConstInitVal(children.get(2)).get(0);
                     varValue.setValue(srcValue);
                     currentTable.addSymbol(varValue);
                     StoreUser storeUser = new StoreUser(srcValue, pointer);
                     currentUser.addUser(storeUser);
                 }
                 break;
-            case 1, 2:
-                throw new RuntimeException("no support for array yet");
+            case 1:
+                dim1 = calNode(children.get(2)).getNumber();
+                if (isGlobal()) {
+                    OneDimensionArrayValue oneDimensionArrayValue = new OneDimensionArrayValue(currentTable, ident.getToken(), true, dim1);
+                    oneDimensionArrayValue.setValues(ConstInitVal(children.get(5)));
+                    currentTable.addSymbol(oneDimensionArrayValue);
+                    GlobalVarDefUser globalVarDefUser = new GlobalVarDefUser(oneDimensionArrayValue);
+                    currentUser.addUser(globalVarDefUser);
+                } else {
+                    TempValue pointer = new TempPointerValue(tempCount++);
+                    AllocUser allocUser = new AllocUser(pointer);
+                    currentUser.addUser(allocUser);
+                    OneDimensionArrayValue oneDimensionArrayValue = new OneDimensionArrayValue(currentTable, ident.getToken(), true, dim1, pointer);
+                    currentTable.addSymbol(oneDimensionArrayValue);
+                    ArrayList<Value> srcValues = ConstInitVal(children.get(5));
+                    oneDimensionArrayValue.setValues(srcValues);
+                    for (int i = 0; i < dim1; i++) {
+                        TempPointerValue elementPointer = new TempPointerValue(tempCount++);
+                        ArrayList<Value> index = new ArrayList<>();
+                        index.add(new IntConstValue(0));
+                        index.add(new IntConstValue(i));
+                        GetelementptrUser getelementptrUser = new GetelementptrUser(elementPointer, pointer, index);
+                        currentUser.addUser(getelementptrUser);
+                        StoreUser storeUser = new StoreUser(srcValues.get(i), elementPointer);
+                        currentUser.addUser(storeUser);
+                    }
+                }
+                break;
+            case 2:
+                dim1 = calNode(children.get(2)).getNumber();
+                dim2 = calNode(children.get(5)).getNumber();
+                if (isGlobal()) {
+                    TwoDimensionArrayValue twoDimensionArrayValue = new TwoDimensionArrayValue(currentTable, ident.getToken(), true, dim1, dim2);
+                    twoDimensionArrayValue.setValues(ConstInitVal(children.get(8)));
+                    currentTable.addSymbol(twoDimensionArrayValue);
+                    GlobalVarDefUser globalVarDefUser = new GlobalVarDefUser(twoDimensionArrayValue);
+                    currentUser.addUser(globalVarDefUser);
+                } else {
+                    TempValue pointer = new TempPointerValue(tempCount++);
+                    AllocUser allocUser = new AllocUser(pointer);
+                    currentUser.addUser(allocUser);
+                    TwoDimensionArrayValue twoDimensionArrayValue = new TwoDimensionArrayValue(currentTable, ident.getToken(), true, dim1, dim2, pointer);
+                    currentTable.addSymbol(twoDimensionArrayValue);
+                    ArrayList<Value> srcValues = ConstInitVal(children.get(8));
+                    twoDimensionArrayValue.setValues(srcValues);
+                    for (int i = 0; i < dim1; i++) {
+                        for (int j = 0; j < dim2; j++) {
+                            TempPointerValue elementPointer = new TempPointerValue(tempCount++);
+                            ArrayList<Value> index = new ArrayList<>();
+                            index.add(new IntConstValue(0));
+                            index.add(new IntConstValue(i));
+                            index.add(new IntConstValue(j));
+                            GetelementptrUser getelementptrUser = new GetelementptrUser(elementPointer, pointer, index);
+                            currentUser.addUser(getelementptrUser);
+                            StoreUser storeUser = new StoreUser(srcValues.get(i * dim2 + j), elementPointer);
+                            currentUser.addUser(storeUser);
+                        }
+                    }
+                }
+                break;
         }
     }
 
-    private Value ConstInitVal(Node constInitVal) {
+    private ArrayList<Value> ConstInitVal(Node constInitVal) {
+        ArrayList<Value> initVals = new ArrayList<>();
         ArrayList<Node> children = constInitVal.getChildren();
         if (children.size() == 1) {
-            return calNode(children.get(0));
+            initVals.add(calNode(children.get(0)));
         } else {
-            throw new RuntimeException("no support for array yet");
+            for (Node child : children) {
+                if (child instanceof GrammarUnit unit
+                        && unit.getType() == GrammarUnit.GrammarUnitType.ConstInitVal) {
+                    initVals.addAll(ConstInitVal(child));
+                }
+            }
         }
+        return initVals;
     }
 
     private void VarDecl(Node varDecl) {
@@ -141,7 +206,9 @@ public class Visitor {
     private void VarDef(Node varDef) {
         ArrayList<Node> children = varDef.getChildren();
         int dim = 0;
-        TerminalSymbol ident;
+        TerminalSymbol ident = (TerminalSymbol) children.get(0);
+        int dim1;
+        int dim2;
         VarValue varValue;
         for (Node child : children) {
             if (child instanceof GrammarUnit unit
@@ -152,10 +219,9 @@ public class Visitor {
         switch (dim) {
             case 0:
                 if (isGlobal()) {
-                    ident = (TerminalSymbol) children.get(0);
                     varValue = new VarValue(currentTable, ident.getToken(), false);
                     if (children.size() == 3) {
-                        varValue.setValue(InitVal(children.get(2)));
+                        varValue.setValue(InitVal(children.get(2)).get(0));
                     } else {
                         varValue.setValue(new IntConstValue(0));
                     }
@@ -163,13 +229,12 @@ public class Visitor {
                     GlobalVarDefUser globalVarDefUser = new GlobalVarDefUser(varValue);
                     currentUser.addUser(globalVarDefUser);
                 } else {
-                    ident = (TerminalSymbol) children.get(0);
                     TempValue pointer = new TempPointerValue(tempCount++);
                     AllocUser allocUser = new AllocUser(pointer);
                     currentUser.addUser(allocUser);
                     varValue = new VarValue(currentTable, ident.getToken(), false, pointer);
                     if (children.size() == 3) {
-                        Value srcValue = InitVal(children.get(2));
+                        Value srcValue = InitVal(children.get(2)).get(0);
                         varValue.setValue(srcValue);
                         StoreUser storeUser = new StoreUser(srcValue, pointer);
                         currentUser.addUser(storeUser);
@@ -177,22 +242,95 @@ public class Visitor {
                     currentTable.addSymbol(varValue);
                 }
                 break;
-            case 1, 2:
-                throw new RuntimeException("no support for array yet");
+            case 1:
+                dim1 = calNode(children.get(2)).getNumber();
+                if (isGlobal()) {
+                    OneDimensionArrayValue oneDimensionArrayValue = new OneDimensionArrayValue(currentTable, ident.getToken(), false, dim1);
+                    if (children.size() == 6) {
+                        oneDimensionArrayValue.setValues(InitVal(children.get(5)));
+                    }
+                    currentTable.addSymbol(oneDimensionArrayValue);
+                    GlobalVarDefUser globalVarDefUser = new GlobalVarDefUser(oneDimensionArrayValue);
+                    currentUser.addUser(globalVarDefUser);
+                } else {
+                    TempValue pointer = new TempPointerValue(tempCount++);
+                    AllocUser allocUser = new AllocUser(pointer);
+                    currentUser.addUser(allocUser);
+                    OneDimensionArrayValue oneDimensionArrayValue = new OneDimensionArrayValue(currentTable, ident.getToken(), false, dim1, pointer);
+                    currentTable.addSymbol(oneDimensionArrayValue);
+                    if (children.size() == 6) {
+                        ArrayList<Value> srcValues = InitVal(children.get(5));
+                        oneDimensionArrayValue.setValues(srcValues);
+                        for (int i = 0; i < dim1; i++) {
+                            TempPointerValue elementPointer = new TempPointerValue(tempCount++);
+                            ArrayList<Value> index = new ArrayList<>();
+                            index.add(new IntConstValue(0));
+                            index.add(new IntConstValue(i));
+                            GetelementptrUser getelementptrUser = new GetelementptrUser(elementPointer, pointer, index);
+                            currentUser.addUser(getelementptrUser);
+                            StoreUser storeUser = new StoreUser(srcValues.get(i), elementPointer);
+                            currentUser.addUser(storeUser);
+                        }
+                    }
+                }
+                break;
+            case 2:
+                dim1 = calNode(children.get(2)).getNumber();
+                dim2 = calNode(children.get(5)).getNumber();
+                if (isGlobal()) {
+                    TwoDimensionArrayValue twoDimensionArrayValue = new TwoDimensionArrayValue(currentTable, ident.getToken(), false, dim1, dim2);
+                    if (children.size() == 9) {
+                        twoDimensionArrayValue.setValues(InitVal(children.get(8)));
+                    }
+                    currentTable.addSymbol(twoDimensionArrayValue);
+                    GlobalVarDefUser globalVarDefUser = new GlobalVarDefUser(twoDimensionArrayValue);
+                    currentUser.addUser(globalVarDefUser);
+                } else {
+                    TempValue pointer = new TempPointerValue(tempCount++);
+                    AllocUser allocUser = new AllocUser(pointer);
+                    currentUser.addUser(allocUser);
+                    TwoDimensionArrayValue twoDimensionArrayValue = new TwoDimensionArrayValue(currentTable, ident.getToken(), false, dim1, dim2, pointer);
+                    currentTable.addSymbol(twoDimensionArrayValue);
+                    if (children.size() == 9) {
+                        ArrayList<Value> srcValues = InitVal(children.get(8));
+                        twoDimensionArrayValue.setValues(srcValues);
+                        for (int i = 0; i < dim1; i++) {
+                            for (int j = 0; j < dim2; j++) {
+                                TempPointerValue elementPointer = new TempPointerValue(tempCount++);
+                                ArrayList<Value> index = new ArrayList<>();
+                                index.add(new IntConstValue(0));
+                                index.add(new IntConstValue(i));
+                                index.add(new IntConstValue(j));
+                                GetelementptrUser getelementptrUser = new GetelementptrUser(elementPointer, pointer, index);
+                                currentUser.addUser(getelementptrUser);
+                                StoreUser storeUser = new StoreUser(srcValues.get(i * dim2 + j), elementPointer);
+                                currentUser.addUser(storeUser);
+                            }
+                        }
+                    }
+                }
+                break;
         }
     }
 
-    private Value InitVal(Node initVal) {
+    private ArrayList<Value> InitVal(Node initVal) {
+        ArrayList<Value> initVals = new ArrayList<>();
         ArrayList<Node> children = initVal.getChildren();
         if (children.size() == 1) {
             if (isGlobal()) {
-                return calNode(children.get(0));
+                initVals.add(calNode(children.get(0)));
             } else {
-                return Exp(children.get(0));
+                initVals.add(Exp(children.get(0)));
             }
         } else {
-            throw new RuntimeException("no support for array yet");
+            for (Node child : children) {
+                if (child instanceof GrammarUnit unit
+                        && unit.getType() == GrammarUnit.GrammarUnitType.InitVal) {
+                    initVals.addAll(InitVal(child));
+                }
+            }
         }
+        return initVals;
     }
 
     private void FuncDef(Node funcDef) {
@@ -548,7 +686,7 @@ public class Visitor {
         throw new RuntimeException("unexpected form of AddExp");
     }
 
-    private Value calNode(Node node) {
+    private IntConstValue calNode(Node node) {
         if (node instanceof TerminalSymbol terminalSymbol) {
             switch (terminalSymbol.getType()) {
                 case INTCON:
@@ -557,7 +695,7 @@ public class Visitor {
                     Value value = currentTable.getSymbol(terminalSymbol.getToken().value);
                     if (value instanceof VarValue varValue) {
                         if (varValue.getValue() != null) {
-                            return varValue.getValue();
+                            return (IntConstValue) varValue.getValue();
                         } else {
                             throw new RuntimeException("not a const when calNode idenfr");
                         }
@@ -574,7 +712,7 @@ public class Visitor {
                         return calNode(unit.getChildren().get(0));
                     } else if (unit.getChildren().size() == 2) {
                         String op = ((TerminalSymbol) unit.getChildren().get(0)).getToken().value;
-                        IntConstValue value = (IntConstValue) calNode(unit.getChildren().get(1));
+                        IntConstValue value = calNode(unit.getChildren().get(1));
                         assert value != null;
                         if (op.equals("-")) {
                             return new IntConstValue(-value.getNumber());
@@ -591,8 +729,8 @@ public class Visitor {
                         return calNode(unit.getChildren().get(0));
                     } else if (unit.getChildren().size() == 3) {
                         String op = ((TerminalSymbol) unit.getChildren().get(1)).getToken().value;
-                        IntConstValue left = (IntConstValue) calNode(unit.getChildren().get(0));
-                        IntConstValue right = (IntConstValue) calNode(unit.getChildren().get(2));
+                        IntConstValue left = calNode(unit.getChildren().get(0));
+                        IntConstValue right = calNode(unit.getChildren().get(2));
                         assert left != null;
                         assert right != null;
                         if (op.equals("*")) {
@@ -610,8 +748,8 @@ public class Visitor {
                         return calNode(unit.getChildren().get(0));
                     } else if (unit.getChildren().size() == 3) {
                         String op = ((TerminalSymbol) unit.getChildren().get(1)).getToken().value;
-                        IntConstValue left = (IntConstValue) calNode(unit.getChildren().get(0));
-                        IntConstValue right = (IntConstValue) calNode(unit.getChildren().get(2));
+                        IntConstValue left = calNode(unit.getChildren().get(0));
+                        IntConstValue right = calNode(unit.getChildren().get(2));
                         assert left != null;
                         assert right != null;
                         if (op.equals("+")) {

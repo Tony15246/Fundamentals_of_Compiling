@@ -23,7 +23,7 @@ public class OneDimensionArrayValue extends SymbolValue{
         if (dim1 != null) {
             setType("[" + this.dim1 + " x i32]");
         } else {
-            setType("i32*");
+            setType("i32");
         }
     }
 
@@ -36,7 +36,7 @@ public class OneDimensionArrayValue extends SymbolValue{
         if (dim1 != null) {
             setType("[" + this.dim1 + " x i32]");
         } else {
-            setType("i32*");
+            setType("i32");
         }
     }
 
@@ -44,7 +44,7 @@ public class OneDimensionArrayValue extends SymbolValue{
         return isConst;
     }
 
-    public int getDim1() {
+    public Integer getDim1() {
         return dim1;
     }
 

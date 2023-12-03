@@ -7,6 +7,10 @@ public class TempPointerValue extends TempValue{
 
     @Override
     public String getType() {
-        return getValue().getType() + "*";
+        if (getValue() != null) {
+            return getValue().getType() + "*";
+        } else {
+            return super.getType();
+        }
     }
 }

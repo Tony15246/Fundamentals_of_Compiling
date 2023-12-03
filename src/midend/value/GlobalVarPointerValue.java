@@ -2,15 +2,14 @@ package midend.value;
 
 public class GlobalVarPointerValue extends Value{
     private final String name;
-    private final Value value;
 
     public GlobalVarPointerValue(String name, Value value) {
         this.name = name;
-        this.value = value;
+        setValue(value);
     }
 
     public String getType() {
-        return value.getType() + "*";
+        return getValue().getType() + "*";
     }
 
     @Override

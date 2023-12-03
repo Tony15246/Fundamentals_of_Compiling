@@ -132,6 +132,7 @@ public class Visitor {
                     oneDimensionArrayValue.setValues(srcValues);
                     for (int i = 0; i < dim1; i++) {
                         TempPointerValue elementPointer = new TempPointerValue(tempCount++);
+                        elementPointer.setType("i32*");
                         ArrayList<Value> index = new ArrayList<>();
                         index.add(new IntConstValue(0));
                         index.add(new IntConstValue(i));
@@ -162,6 +163,7 @@ public class Visitor {
                     for (int i = 0; i < dim1; i++) {
                         for (int j = 0; j < dim2; j++) {
                             TempPointerValue elementPointer = new TempPointerValue(tempCount++);
+                            elementPointer.setType("i32*");
                             ArrayList<Value> index = new ArrayList<>();
                             index.add(new IntConstValue(0));
                             index.add(new IntConstValue(i));
@@ -263,6 +265,7 @@ public class Visitor {
                         oneDimensionArrayValue.setValues(srcValues);
                         for (int i = 0; i < dim1; i++) {
                             TempPointerValue elementPointer = new TempPointerValue(tempCount++);
+                            elementPointer.setType("i32*");
                             ArrayList<Value> index = new ArrayList<>();
                             index.add(new IntConstValue(0));
                             index.add(new IntConstValue(i));
@@ -297,6 +300,7 @@ public class Visitor {
                         for (int i = 0; i < dim1; i++) {
                             for (int j = 0; j < dim2; j++) {
                                 TempPointerValue elementPointer = new TempPointerValue(tempCount++);
+                                elementPointer.setType("i32*");
                                 ArrayList<Value> index = new ArrayList<>();
                                 index.add(new IntConstValue(0));
                                 index.add(new IntConstValue(i));
@@ -403,11 +407,16 @@ public class Visitor {
             if (child instanceof GrammarUnit unit
                     && unit.getType() == GrammarUnit.GrammarUnitType.FuncFParam) {
                 Value param = FuncFParam(child);
-                //todo: array
                 if (param instanceof VarValue varValue) {
                     params.add(varValue);
                     paramsTempVar.add(varValue.getTempVar());
                     currentTable.addSymbol(varValue);
+                } else if (param instanceof OneDimensionArrayValue oneDimensionArrayValue) {
+                    paramsTempVar.add(oneDimensionArrayValue.getPointer());
+                    currentTable.addSymbol(oneDimensionArrayValue);
+                } else if (param instanceof TwoDimensionArrayValue twoDimensionArrayValue) {
+                    paramsTempVar.add(twoDimensionArrayValue.getPointer());
+                    currentTable.addSymbol(twoDimensionArrayValue);
                 }
             }
         }
@@ -428,17 +437,23 @@ public class Visitor {
     private Value FuncFParam(Node funcFParam) {
         ArrayList<Node> children = funcFParam.getChildren();
         TerminalSymbol ident = (TerminalSymbol) children.get(1);
-        VarValue param;
+        TempValue pointer;
         switch (children.size()) {
             case 2:
                 TempValue paramValue = new TempValue(tempCount++);
-                param = new VarValue(currentTable, ident.getToken(), false, null);
-                param.setTempVar(paramValue);
-                break;
+                VarValue varValue = new VarValue(currentTable, ident.getToken(), false, null);
+                varValue.setTempVar(paramValue);
+                return varValue;
+            case 4:
+                pointer = new TempPointerValue(tempCount++);
+                return new OneDimensionArrayValue(currentTable, ident.getToken(), false, null, pointer);
+            case 7:
+                int dim2 = calNode(children.get(5)).getNumber();
+                pointer = new TempPointerValue(tempCount++);
+                return new TwoDimensionArrayValue(currentTable, ident.getToken(), false, null, dim2, pointer);
             default:
-                throw new RuntimeException("no support for array yet");
+                throw new RuntimeException("unexpected form of FuncFParam");
         }
-        return param;
     }
 
     private void Block(Node block) {
@@ -530,9 +545,9 @@ public class Visitor {
     private Value LVal(Node lVal, boolean isLVal) {
         ArrayList<Node> children = lVal.getChildren();
         TerminalSymbol ident = (TerminalSymbol) children.get(0);
-        switch (children.size()) {
-            case 1:
-                VarValue varValue = (VarValue) currentTable.getSymbol(ident.getToken().value);
+        Value value = currentTable.getSymbol(ident.getToken().value);
+        if (value instanceof VarValue varValue) {
+            if (children.size() == 1) {
                 if (isLVal) {
                     return varValue.getPointer();
                 } else {
@@ -542,10 +557,126 @@ public class Visitor {
                     currentUser.addUser(loadUser);
                     return varValue.getTempVar();
                 }
-            case 4, 7:
-                throw new RuntimeException("no support for array yet");
+            } else {
+                throw new RuntimeException("can not add index for var");
+            }
+        } else if (value instanceof OneDimensionArrayValue oneDimensionArrayValue) {
+            if (children.size() == 1) {
+                if (isLVal) {
+                    throw new RuntimeException("can not assign a array");
+                } else {
+                    ArrayList<Value> index = new ArrayList<>();
+                    if (oneDimensionArrayValue.getDim1() == null) {
+                        return oneDimensionArrayValue.getPointer();
+                    }
+                    index.add(new IntConstValue(0));
+                    index.add(new IntConstValue(0));
+                    TempPointerValue pointer = new TempPointerValue(tempCount++);
+                    pointer.setType("i32*");
+                    GetelementptrUser getelementptrUser = new GetelementptrUser(pointer, oneDimensionArrayValue.getPointer(), index);
+                    currentUser.addUser(getelementptrUser);
+                    return pointer;
+                }
+            } else if (children.size() == 4) {
+                if (isLVal) {
+                    ArrayList<Value> index = new ArrayList<>();
+                    if (oneDimensionArrayValue.getDim1() != null) {
+                        index.add(new IntConstValue(0));
+                    }
+                    index.add(Exp(children.get(2)));
+                    TempPointerValue pointer = new TempPointerValue(tempCount++);
+                    pointer.setType("i32*");
+                    GetelementptrUser getelementptrUser = new GetelementptrUser(pointer, oneDimensionArrayValue.getPointer(), index);
+                    currentUser.addUser(getelementptrUser);
+                    return pointer;
+                } else {
+                    ArrayList<Value> index = new ArrayList<>();
+                    if (oneDimensionArrayValue.getDim1() != null) {
+                        index.add(new IntConstValue(0));
+                    }
+                    index.add(Exp(children.get(2)));
+                    TempPointerValue pointer = new TempPointerValue(tempCount++);
+                    pointer.setType("i32*");
+                    GetelementptrUser getelementptrUser = new GetelementptrUser(pointer, oneDimensionArrayValue.getPointer(), index);
+                    currentUser.addUser(getelementptrUser);
+                    TempValue tempVar = new TempValue(tempCount++);
+                    tempVar.setType("i32");
+                    LoadUser loadUser = new LoadUser(pointer, tempVar);
+                    currentUser.addUser(loadUser);
+                    return tempVar;
+                }
+            } else {
+                throw new RuntimeException("can not add two index for one dimension array");
+            }
+        } else if (value instanceof TwoDimensionArrayValue twoDimensionArrayValue) {
+            if (children.size() == 1) {
+                if (isLVal) {
+                    throw new RuntimeException("can not assign a array");
+                } else {
+                    ArrayList<Value> index = new ArrayList<>();
+                    if (twoDimensionArrayValue.getDim1() == null) {
+                        return twoDimensionArrayValue.getPointer();
+                    }
+                    index.add(new IntConstValue(0));
+                    index.add(new IntConstValue(0));
+                    TempPointerValue pointer = new TempPointerValue(tempCount++);
+                    pointer.setType("[" + twoDimensionArrayValue.getDim2() + " x i32]*");
+                    GetelementptrUser getelementptrUser = new GetelementptrUser(pointer, twoDimensionArrayValue.getPointer(), index);
+                    currentUser.addUser(getelementptrUser);
+                    return pointer;
+                }
+            } else if (children.size() == 4) {
+                if (isLVal) {
+                    throw new RuntimeException("can not assign a array");
+                } else {
+                    ArrayList<Value> index = new ArrayList<>();
+                    if (twoDimensionArrayValue.getDim1() != null) {
+                        index.add(new IntConstValue(0));
+                    }
+                    index.add(Exp(children.get(2)));
+                    index.add(new IntConstValue(0));
+                    TempPointerValue pointer = new TempPointerValue(tempCount++);
+                    pointer.setType("i32*");
+                    GetelementptrUser getelementptrUser = new GetelementptrUser(pointer, twoDimensionArrayValue.getPointer(), index);
+                    currentUser.addUser(getelementptrUser);
+                    return pointer;
+                }
+            } else if (children.size() == 7) {
+                if (isLVal) {
+                    ArrayList<Value> index = new ArrayList<>();
+                    if (twoDimensionArrayValue.getDim1() != null) {
+                        index.add(new IntConstValue(0));
+                    }
+                    index.add(Exp(children.get(2)));
+                    index.add(Exp(children.get(5)));
+                    TempPointerValue pointer = new TempPointerValue(tempCount++);
+                    pointer.setType("i32*");
+                    GetelementptrUser getelementptrUser = new GetelementptrUser(pointer, twoDimensionArrayValue.getPointer(), index);
+                    currentUser.addUser(getelementptrUser);
+                    return pointer;
+                } else {
+                    ArrayList<Value> index = new ArrayList<>();
+                    if (twoDimensionArrayValue.getDim1() != null) {
+                        index.add(new IntConstValue(0));
+                    }
+                    index.add(Exp(children.get(2)));
+                    index.add(Exp(children.get(5)));
+                    TempPointerValue pointer = new TempPointerValue(tempCount++);
+                    pointer.setType("i32*");
+                    GetelementptrUser getelementptrUser = new GetelementptrUser(pointer, twoDimensionArrayValue.getPointer(), index);
+                    currentUser.addUser(getelementptrUser);
+                    TempValue tempVar = new TempValue(tempCount++);
+                    tempVar.setType("i32");
+                    LoadUser loadUser = new LoadUser(pointer, tempVar);
+                    currentUser.addUser(loadUser);
+                    return tempVar;
+                }
+            } else {
+                throw new RuntimeException("not two index for two dimension array");
+            }
+        } else {
+            throw new RuntimeException("not a var when LVal");
         }
-        throw new RuntimeException("unexpected form of LVal");
     }
 
     private Value PrimaryExp(Node primaryExp) {
@@ -697,7 +828,7 @@ public class Visitor {
                         if (varValue.getValue() != null) {
                             return (IntConstValue) varValue.getValue();
                         } else {
-                            throw new RuntimeException("not a const when calNode idenfr");
+                            return new IntConstValue(0);
                         }
                     } else {
                         throw new RuntimeException("not a var when calNode idenfr");
@@ -761,10 +892,40 @@ public class Visitor {
                         }
                     }
                 case LVal:
-                    if (unit.getChildren().size() == 1) {
-                        return calNode(unit.getChildren().get(0));
-                    } else {
-                        throw new RuntimeException("no support for array yet");
+                    ArrayList<Node> children = unit.getChildren();
+                    TerminalSymbol ident = (TerminalSymbol) children.get(0);
+                    int dim1;
+                    int dim2;
+                    switch (children.size()) {
+                        case 1:
+                            return calNode(ident);
+                        case 4:
+                            dim1 = calNode(children.get(2)).getNumber();
+                            Value value = currentTable.getSymbol(ident.getToken().value);
+                            if (value instanceof OneDimensionArrayValue oneDimensionArrayValue) {
+                                ArrayList<Value> values = oneDimensionArrayValue.getValues();
+                                if (dim1 < values.size()) {
+                                    return (IntConstValue) values.get(dim1);
+                                } else {
+                                    return new IntConstValue(0);
+                                }
+                            } else {
+                                throw new RuntimeException("not a one dimension array");
+                            }
+                        case 7:
+                            dim1 = calNode(children.get(2)).getNumber();
+                            dim2 = calNode(children.get(5)).getNumber();
+                            Value value2 = currentTable.getSymbol(ident.getToken().value);
+                            if (value2 instanceof TwoDimensionArrayValue twoDimensionArrayValue) {
+                                ArrayList<Value> values = twoDimensionArrayValue.getValues();
+                                if (dim1 * twoDimensionArrayValue.getDim2() + dim2 < values.size()) {
+                                    return (IntConstValue) values.get(dim1 * twoDimensionArrayValue.getDim2() + dim2);
+                                } else {
+                                    return new IntConstValue(0);
+                                }
+                            } else {
+                                throw new RuntimeException("not a two dimension array");
+                            }
                     }
                 case PrimaryExp:
                     if (unit.getChildren().size() == 1) {

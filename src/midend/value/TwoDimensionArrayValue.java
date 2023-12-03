@@ -25,7 +25,7 @@ public class TwoDimensionArrayValue extends SymbolValue {
         if (dim1 != null) {
             setType("[" + this.dim1 + " x [" + this.dim2 + " x i32]]");
         } else {
-            setType("[" + this.dim2 + " x i32]*");
+            setType("[" + this.dim2 + " x i32]");
         }
     }
 
@@ -39,7 +39,7 @@ public class TwoDimensionArrayValue extends SymbolValue {
         if (dim1 != null) {
             setType("[" + this.dim1 + " x [" + this.dim2 + " x i32]]");
         } else {
-            setType("[" + this.dim2 + " x i32]*");
+            setType("[" + this.dim2 + " x i32]");
         }
     }
 
@@ -47,11 +47,11 @@ public class TwoDimensionArrayValue extends SymbolValue {
         return isConst;
     }
 
-    public int getDim1() {
+    public Integer getDim1() {
         return dim1;
     }
 
-    public int getDim2() {
+    public Integer getDim2() {
         return dim2;
     }
 

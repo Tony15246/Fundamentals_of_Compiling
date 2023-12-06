@@ -3,10 +3,10 @@ package midend.value.user;
 import midend.value.Value;
 
 public class IcmpUser extends User{
-    Value outputValue;
-    Value leftValue;
-    Value rightValue;
-    String cond;
+    private final Value outputValue;
+    private final Value leftValue;
+    private final Value rightValue;
+    private final String cond;
 
     public IcmpUser(Value outputValue, Value leftValue, Value rightValue, String cond) {
         this.outputValue = outputValue;

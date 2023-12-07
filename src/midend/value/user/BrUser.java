@@ -2,7 +2,7 @@ package midend.value.user;
 
 import midend.value.Value;
 
-public class BrUser {
+public class BrUser extends User{
     private final Value cond;
     private final BasicBlockUser ifTrue;
     private final BasicBlockUser ifFalse;

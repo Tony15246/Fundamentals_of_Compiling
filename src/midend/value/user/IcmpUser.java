@@ -8,7 +8,7 @@ public class IcmpUser extends User{
     private final Value rightValue;
     private final String cond;
 
-    public IcmpUser(Value outputValue, Value leftValue, Value rightValue, String cond) {
+    public IcmpUser(Value outputValue, String cond, Value leftValue, Value rightValue) {
         this.outputValue = outputValue;
         this.leftValue = leftValue;
         this.rightValue = rightValue;

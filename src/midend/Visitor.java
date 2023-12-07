@@ -7,6 +7,7 @@ import midend.value.*;
 import midend.value.user.*;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Visitor {
     private User rootUser;
@@ -711,6 +712,12 @@ public class Visitor {
                 SubUser subUser = new SubUser(new IntConstValue(0), rightValue, outputValue);
                 currentUser.addUser(subUser);
                 return outputValue;
+            } else if (op.equals("!")) {
+                TempValue outputValue = new TempValue(tempCount++);
+                outputValue.setType("i1");
+                IcmpUser icmpUser = new IcmpUser(outputValue, "eq", new IntConstValue(0), rightValue);
+                currentUser.addUser(icmpUser);
+                return outputValue;
             }
             return rightValue;
         } else if (children.size() == 3) {
@@ -815,6 +822,92 @@ public class Visitor {
             return outputValue;
         }
         throw new RuntimeException("unexpected form of AddExp");
+    }
+
+    private Value RelExp(Node relExp) {
+        ArrayList<Node> children = relExp.getChildren();
+        if (children.size() == 1) {
+            return AddExp(children.get(0));
+        } else if (children.size() == 3) {
+            String op = ((TerminalSymbol) children.get(1)).getToken().value;
+            Value leftValue = RelExp(children.get(0));
+            Value rightValue = AddExp(children.get(2));
+            TempValue outputValue = new TempValue(tempCount++);
+            outputValue.setType("i1");
+            if (leftValue.getType().equals("i1")) {
+                TempValue tempValue = new TempValue(tempCount++);
+                tempValue.setType("i32");
+                ZextUser zextUser = new ZextUser(tempValue, leftValue);
+                currentUser.addUser(zextUser);
+                leftValue = tempValue;
+            }
+            if (rightValue.getType().equals("i1")) {
+                TempValue tempValue = new TempValue(tempCount++);
+                tempValue.setType("i32");
+                ZextUser zextUser = new ZextUser(tempValue, rightValue);
+                currentUser.addUser(zextUser);
+                rightValue = tempValue;
+            }
+            switch (op) {
+                case "<" -> {
+                    IcmpUser icmpUser = new IcmpUser(outputValue, "slt", leftValue, rightValue);
+                    currentUser.addUser(icmpUser);
+                }
+                case ">" -> {
+                    IcmpUser icmpUser = new IcmpUser(outputValue, "sgt", leftValue, rightValue);
+                    currentUser.addUser(icmpUser);
+                }
+                case "<=" -> {
+                    IcmpUser icmpUser = new IcmpUser(outputValue, "sle", leftValue, rightValue);
+                    currentUser.addUser(icmpUser);
+                }
+                case ">=" -> {
+                    IcmpUser icmpUser = new IcmpUser(outputValue, "sge", leftValue, rightValue);
+                    currentUser.addUser(icmpUser);
+                }
+            }
+            return outputValue;
+        }
+        throw new RuntimeException("unexpected form of RelExp");
+    }
+
+    private Value EqExp(Node eqExp) {
+        ArrayList<Node> children = eqExp.getChildren();
+        if (children.size() == 1) {
+            return RelExp(children.get(0));
+        } else if (children.size() == 3) {
+            String op = ((TerminalSymbol) children.get(1)).getToken().value;
+            Value leftValue = EqExp(children.get(0));
+            Value rightValue = RelExp(children.get(2));
+            TempValue outputValue = new TempValue(tempCount++);
+            outputValue.setType("i1");
+            if (leftValue.getType().equals("i1")) {
+                TempValue tempValue = new TempValue(tempCount++);
+                tempValue.setType("i32");
+                ZextUser zextUser = new ZextUser(tempValue, leftValue);
+                currentUser.addUser(zextUser);
+                leftValue = tempValue;
+            }
+            if (rightValue.getType().equals("i1")) {
+                TempValue tempValue = new TempValue(tempCount++);
+                tempValue.setType("i32");
+                ZextUser zextUser = new ZextUser(tempValue, rightValue);
+                currentUser.addUser(zextUser);
+                rightValue = tempValue;
+            }
+            switch (op) {
+                case "==" -> {
+                    IcmpUser icmpUser = new IcmpUser(outputValue, "eq", leftValue, rightValue);
+                    currentUser.addUser(icmpUser);
+                }
+                case "!=" -> {
+                    IcmpUser icmpUser = new IcmpUser(outputValue, "ne", leftValue, rightValue);
+                    currentUser.addUser(icmpUser);
+                }
+            }
+            return outputValue;
+        }
+        throw new RuntimeException("unexpected form of EqExp");
     }
 
     private IntConstValue calNode(Node node) {

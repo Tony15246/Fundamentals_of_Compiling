@@ -7,15 +7,17 @@ import midend.value.*;
 import midend.value.user.*;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class Visitor {
     private User rootUser;
     private User currentUser;
+    private User currentFuncDefUser = null;
     private int tempCount = 0;
     private final Node rootNode;
     private SymbolTable rootTable;
     private SymbolTable currentTable;
+    private BasicBlockUser forStmt2Block = null;
+    private BasicBlockUser outBasicBlock = null;
 
     public Visitor(Node rootNode) {
         this.rootNode = rootNode;
@@ -351,6 +353,7 @@ public class Visitor {
         FuncDefUser funcDefUser = new FuncDefUser(funcValue);
         currentUser.addUser(funcDefUser);
         currentUser = funcDefUser;
+        currentFuncDefUser = funcDefUser;
         int count = tempCount;
         tempCount = 0;
         if (children.get(3) instanceof GrammarUnit) {
@@ -381,6 +384,7 @@ public class Visitor {
         FuncDefUser funcDefUser = new FuncDefUser(funcValue);
         currentUser.addUser(funcDefUser);
         currentUser = funcDefUser;
+        currentFuncDefUser = funcDefUser;
         int count = tempCount;
         tempCount = 1;
         Block(children.get(4));
@@ -506,8 +510,154 @@ public class Visitor {
                         currentUser.addUser(returnUser);
                     }
                     break;
-                case IFTK, FORTK, BREAKTK, CONTINUETK:
-                    throw new RuntimeException("no support for if, for, break, continue yet");
+                case IFTK:
+                    BasicBlockUser ifTrue = new BasicBlockUser();
+                    BasicBlockUser ifFalse = new BasicBlockUser();
+                    Value condIf = Cond(children.get(2), ifTrue, ifFalse);
+                    if (condIf.getType().equals("i32")) {
+                        TempValue tempValue = new TempValue(tempCount++);
+                        tempValue.setType("i1");
+                        IcmpUser icmpUser = new IcmpUser(tempValue, "ne", new IntConstValue(0), condIf);
+                        currentUser.addUser(icmpUser);
+                        condIf = tempValue;
+                    }
+                    BrUser brUser = new BrUser(condIf, ifTrue, ifFalse);
+                    currentUser.addUser(brUser);
+                    ifTrue.setLabel(tempCount++);
+                    currentUser = ifTrue;
+                    currentFuncDefUser.addUser(currentUser);
+                    if (children.get(4).getChildren().size() == 1
+                            && children.get(4).getChildren().get(0) instanceof GrammarUnit block
+                            && block.getType() == GrammarUnit.GrammarUnitType.Block) {
+                        SymbolTable temp = new SymbolTable();
+                        currentTable.addNext(temp);
+                        currentTable = temp;
+                        Stmt(children.get(4));
+                        currentTable = currentTable.getPre();
+                    } else {
+                        Stmt(children.get(4));
+                    }
+                    if (children.size() == 7) {
+                        BasicBlockUser outBasicBlock = new BasicBlockUser();
+                        BrUser brUser1 = new BrUser(outBasicBlock);
+                        currentUser.addUser(brUser1);
+                        ifFalse.setLabel(tempCount++);
+                        currentUser = ifFalse;
+                        currentFuncDefUser.addUser(currentUser);
+                        if (children.get(6).getChildren().size() == 1
+                                && children.get(6).getChildren().get(0) instanceof GrammarUnit block
+                                && block.getType() == GrammarUnit.GrammarUnitType.Block) {
+                            SymbolTable temp = new SymbolTable();
+                            currentTable.addNext(temp);
+                            currentTable = temp;
+                            Stmt(children.get(6));
+                            currentTable = currentTable.getPre();
+                        } else {
+                            Stmt(children.get(6));
+                        }
+                        currentUser = outBasicBlock;
+                        currentFuncDefUser.addUser(currentUser);
+                        outBasicBlock.setLabel(tempCount++);
+                    } else {
+                        BrUser brUser5 = new BrUser(ifFalse);
+                        currentUser.addUser(brUser5);
+                        ifFalse.setLabel(tempCount++);
+                        currentUser = ifFalse;
+                        currentFuncDefUser.addUser(currentUser);
+                    }
+                    break;
+                case FORTK:
+                    Node forstmt1 = null;
+                    Node cond = null;
+                    Node forStmt2 = null;
+                    Node stmtFor;
+                    int index = 2;
+                    if (children.get(index) instanceof TerminalSymbol) {
+                        index++;
+                    } else {
+                        forstmt1 = children.get(index);
+                        index += 2;
+                    }
+                    if (children.get(index) instanceof TerminalSymbol) {
+                        index++;
+                    } else {
+                        cond = children.get(index);
+                        index += 2;
+                    }
+                    if (children.get(index) instanceof TerminalSymbol) {
+                        index++;
+                    } else {
+                        forStmt2 = children.get(index);
+                        index += 2;
+                    }
+                    stmtFor = children.get(index);
+                    BasicBlockUser nextStmt = new BasicBlockUser();
+                    BasicBlockUser tempForStmt2Block = forStmt2Block;
+                    forStmt2Block = new BasicBlockUser();
+                    BasicBlockUser tempOutBasicBlock = outBasicBlock;
+                    outBasicBlock = new BasicBlockUser();
+                    if (forstmt1 != null) {
+                        ForStmt(forstmt1);
+                    }
+                    BasicBlockUser toCond = new BasicBlockUser();
+                    BrUser brUser1 = new BrUser(toCond);
+                    currentUser.addUser(brUser1);
+                    toCond.setLabel(tempCount++);
+                    currentUser = toCond;
+                    currentFuncDefUser.addUser(currentUser);
+                    if (cond != null) {
+                        Value condFor = Cond(cond, nextStmt, outBasicBlock);
+                        if (condFor.getType().equals("i32")) {
+                            TempValue tempValue = new TempValue(tempCount++);
+                            tempValue.setType("i1");
+                            IcmpUser icmpUser = new IcmpUser(tempValue, "ne", new IntConstValue(0), condFor);
+                            currentUser.addUser(icmpUser);
+                            condFor = tempValue;
+                        }
+                        BrUser brUser2 = new BrUser(condFor, nextStmt, outBasicBlock);
+                        currentUser.addUser(brUser2);
+                    } else {
+                        BrUser brUser2 = new BrUser(nextStmt);
+                        currentUser.addUser(brUser2);
+                    }
+                    nextStmt.setLabel(tempCount++);
+                    currentUser = nextStmt;
+                    currentFuncDefUser.addUser(currentUser);
+                    if (stmtFor.getChildren().size() == 1
+                            && stmtFor.getChildren().get(0) instanceof GrammarUnit block
+                            && block.getType() == GrammarUnit.GrammarUnitType.Block) {
+                        SymbolTable temp = new SymbolTable();
+                        currentTable.addNext(temp);
+                        currentTable = temp;
+                        Stmt(stmtFor);
+                        currentTable = currentTable.getPre();
+                    } else {
+                        Stmt(stmtFor);
+                    }
+                    if (forStmt2 != null) {
+                        forStmt2Block.setLabel(tempCount++);
+                        currentUser = forStmt2Block;
+                        currentFuncDefUser.addUser(currentUser);
+                        ForStmt(forStmt2);
+                    } else {
+                        forStmt2Block = toCond;
+                    }
+                    BrUser brUser3 = new BrUser(toCond);
+                    currentUser.addUser(brUser3);
+                    currentUser = outBasicBlock;
+                    currentFuncDefUser.addUser(currentUser);
+                    outBasicBlock.setLabel(tempCount++);
+                    forStmt2Block = tempForStmt2Block;
+                    outBasicBlock = tempOutBasicBlock;
+                    break;
+                case BREAKTK:
+                    BrUser brUser2 = new BrUser(outBasicBlock);
+                    currentUser.addUser(brUser2);
+                    break;
+                case CONTINUETK:
+                    BrUser brUser4 = new BrUser(forStmt2Block);
+                    currentUser.addUser(brUser4);
+                    break;
             }
         } else if (children.get(0) instanceof GrammarUnit unit) {
             switch (unit.getType()) {
@@ -538,9 +688,20 @@ public class Visitor {
         }
     }
 
+    private void ForStmt(Node forStmt) {
+        ArrayList<Node> children = forStmt.getChildren();
+        StoreUser storeUser = new StoreUser(Exp(children.get(2)), LVal(children.get(0), true));
+        currentUser.addUser(storeUser);
+    }
+
     private Value Exp(Node exp) {
         ArrayList<Node> children = exp.getChildren();
         return AddExp(children.get(0));
+    }
+
+    private Value Cond(Node cond, BasicBlockUser ifTrue, BasicBlockUser ifFalse) {
+        ArrayList<Node> children = cond.getChildren();
+        return LOrExp(children.get(0), ifTrue, ifFalse);
     }
 
     private Value LVal(Node lVal, boolean isLVal) {
@@ -908,6 +1069,78 @@ public class Visitor {
             return outputValue;
         }
         throw new RuntimeException("unexpected form of EqExp");
+    }
+
+    private Value LAndExp(Node lAndExp, BasicBlockUser ifTrue, BasicBlockUser ifFalse) {
+        ArrayList<Node> children = lAndExp.getChildren();
+        if (children.size() == 1) {
+            return EqExp(children.get(0));
+        } else if (children.size() == 3) {
+            ifTrue = new BasicBlockUser();
+            Value leftValue = LAndExp(children.get(0), ifTrue, ifFalse);
+            if (leftValue.getType().equals("i32")) {
+                TempValue tempValue = new TempValue(tempCount++);
+                tempValue.setType("i1");
+                IcmpUser icmpUser = new IcmpUser(tempValue, "ne", leftValue, new IntConstValue(0));
+                currentUser.addUser(icmpUser);
+                leftValue = tempValue;
+            }
+            BrUser brUser = new BrUser(leftValue, ifTrue, ifFalse);
+            currentUser.addUser(brUser);
+            ifTrue.setLabel(tempCount++);
+            currentUser = ifTrue;
+            currentFuncDefUser.addUser(currentUser);
+            Value rightValue = EqExp(children.get(2));
+            if (rightValue.getType().equals("i1")) {
+                TempValue tempValue = new TempValue(tempCount++);
+                tempValue.setType("i32");
+                ZextUser zextUser = new ZextUser(tempValue, rightValue);
+                currentUser.addUser(zextUser);
+                rightValue = tempValue;
+            }
+            TempValue outputValue = new TempValue(tempCount++);
+            outputValue.setType("i1");
+            IcmpUser icmpUser = new IcmpUser(outputValue, "ne", rightValue, new IntConstValue(0));
+            currentUser.addUser(icmpUser);
+            return outputValue;
+        }
+        throw new RuntimeException("unexpected form of LAndExp");
+    }
+
+    private Value LOrExp(Node lOrExp, BasicBlockUser ifTrue, BasicBlockUser ifFalse) {
+        ArrayList<Node> children = lOrExp.getChildren();
+        if (children.size() == 1) {
+            return LAndExp(children.get(0), ifTrue, ifFalse);
+        } else if (children.size() == 3) {
+            ifFalse = new BasicBlockUser();
+            Value leftValue = LOrExp(children.get(0), ifTrue, ifFalse);
+            if (leftValue.getType().equals("i32")) {
+                TempValue tempValue = new TempValue(tempCount++);
+                tempValue.setType("i1");
+                IcmpUser icmpUser = new IcmpUser(tempValue, "ne", leftValue, new IntConstValue(0));
+                currentUser.addUser(icmpUser);
+                leftValue = tempValue;
+            }
+            BrUser brUser = new BrUser(leftValue, ifTrue, ifFalse);
+            currentUser.addUser(brUser);
+            ifFalse.setLabel(tempCount++);
+            currentUser = ifFalse;
+            currentFuncDefUser.addUser(currentUser);
+            Value rightValue = LAndExp(children.get(2), ifTrue, ifFalse);
+            if (rightValue.getType().equals("i1")) {
+                TempValue tempValue = new TempValue(tempCount++);
+                tempValue.setType("i32");
+                ZextUser zextUser = new ZextUser(tempValue, rightValue);
+                currentUser.addUser(zextUser);
+                rightValue = tempValue;
+            }
+            TempValue outputValue = new TempValue(tempCount++);
+            outputValue.setType("i1");
+            IcmpUser icmpUser = new IcmpUser(outputValue, "ne", rightValue, new IntConstValue(0));
+            currentUser.addUser(icmpUser);
+            return outputValue;
+        }
+        throw new RuntimeException("unexpected form of LOrExp");
     }
 
     private IntConstValue calNode(Node node) {

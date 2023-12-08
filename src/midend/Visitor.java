@@ -640,6 +640,8 @@ public class Visitor {
                         Stmt(stmtFor);
                     }
                     if (forStmt2 != null) {
+                        BrUser brUser3 = new BrUser(forStmt2Block);
+                        currentUser.addUser(brUser3);
                         forStmt2Block.setLabel(tempCount++);
                         currentUser = forStmt2Block;
                         currentFuncDefUser.addUser(currentUser);

@@ -1115,6 +1115,7 @@ public class Visitor {
         if (children.size() == 1) {
             return LAndExp(children.get(0), ifTrue, ifFalse);
         } else if (children.size() == 3) {
+            BasicBlockUser oldIfFalse = ifFalse;
             ifFalse = new BasicBlockUser();
             Value leftValue = LOrExp(children.get(0), ifTrue, ifFalse);
             if (leftValue.getType().equals("i32")) {
@@ -1129,7 +1130,7 @@ public class Visitor {
             ifFalse.setLabel(tempCount++);
             currentUser = ifFalse;
             currentFuncDefUser.addUser(currentUser);
-            Value rightValue = LAndExp(children.get(2), ifTrue, ifFalse);
+            Value rightValue = LAndExp(children.get(2), ifTrue, oldIfFalse);
             if (rightValue.getType().equals("i1")) {
                 TempValue tempValue = new TempValue(tempCount++);
                 tempValue.setType("i32");

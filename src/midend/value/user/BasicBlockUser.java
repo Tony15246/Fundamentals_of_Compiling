@@ -13,14 +13,14 @@ public class BasicBlockUser extends User{
 
     @Override
     public String toString() {
-        boolean hasBr = false;
+        boolean hasJump = false;
         StringBuilder sb = new StringBuilder();
         sb.append(label).append(":\n");
         for (User user : getUsers()) {
-            if (user instanceof BrUser) {
-                if (!hasBr) {
+            if (user instanceof BrUser || user instanceof RetUser) {
+                if (!hasJump) {
                     sb.append(user).append("\n");
-                    hasBr = true;
+                    hasJump = true;
                 }
             } else {
                 sb.append(user.toString()).append("\n");

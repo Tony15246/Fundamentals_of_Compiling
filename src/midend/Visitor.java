@@ -996,8 +996,6 @@ public class Visitor {
             String op = ((TerminalSymbol) children.get(1)).getToken().value;
             Value leftValue = RelExp(children.get(0));
             Value rightValue = AddExp(children.get(2));
-            TempValue outputValue = new TempValue(tempCount++);
-            outputValue.setType("i1");
             if (leftValue.getType().equals("i1")) {
                 TempValue tempValue = new TempValue(tempCount++);
                 tempValue.setType("i32");
@@ -1012,6 +1010,8 @@ public class Visitor {
                 currentUser.addUser(zextUser);
                 rightValue = tempValue;
             }
+            TempValue outputValue = new TempValue(tempCount++);
+            outputValue.setType("i1");
             switch (op) {
                 case "<" -> {
                     IcmpUser icmpUser = new IcmpUser(outputValue, "slt", leftValue, rightValue);
@@ -1043,8 +1043,6 @@ public class Visitor {
             String op = ((TerminalSymbol) children.get(1)).getToken().value;
             Value leftValue = EqExp(children.get(0));
             Value rightValue = RelExp(children.get(2));
-            TempValue outputValue = new TempValue(tempCount++);
-            outputValue.setType("i1");
             if (leftValue.getType().equals("i1")) {
                 TempValue tempValue = new TempValue(tempCount++);
                 tempValue.setType("i32");
@@ -1059,6 +1057,8 @@ public class Visitor {
                 currentUser.addUser(zextUser);
                 rightValue = tempValue;
             }
+            TempValue outputValue = new TempValue(tempCount++);
+            outputValue.setType("i1");
             switch (op) {
                 case "==" -> {
                     IcmpUser icmpUser = new IcmpUser(outputValue, "eq", leftValue, rightValue);

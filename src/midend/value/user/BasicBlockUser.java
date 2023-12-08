@@ -17,13 +17,13 @@ public class BasicBlockUser extends User{
         StringBuilder sb = new StringBuilder();
         sb.append(label).append(":\n");
         for (User user : getUsers()) {
-            if (user instanceof BrUser || user instanceof RetUser) {
-                if (!hasJump) {
-                    sb.append(user).append("\n");
-                    hasJump = true;
-                }
+            if (hasJump) {
+                break;
             } else {
                 sb.append(user.toString()).append("\n");
+                if (user instanceof BrUser || user instanceof RetUser) {
+                    hasJump = true;
+                }
             }
         }
         return sb.toString();

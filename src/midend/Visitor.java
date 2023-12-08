@@ -538,8 +538,8 @@ public class Visitor {
                         Stmt(children.get(4));
                     }
                     if (children.size() == 7) {
-                        BasicBlockUser outBasicBlock = new BasicBlockUser();
-                        BrUser brUser1 = new BrUser(outBasicBlock);
+                        BasicBlockUser out = new BasicBlockUser();
+                        BrUser brUser1 = new BrUser(out);
                         currentUser.addUser(brUser1);
                         ifFalse.setLabel(tempCount++);
                         currentUser = ifFalse;
@@ -555,11 +555,11 @@ public class Visitor {
                         } else {
                             Stmt(children.get(6));
                         }
-                        BrUser brUser2 = new BrUser(outBasicBlock);
+                        BrUser brUser2 = new BrUser(out);
                         currentUser.addUser(brUser2);
-                        currentUser = outBasicBlock;
+                        currentUser = out;
                         currentFuncDefUser.addUser(currentUser);
-                        outBasicBlock.setLabel(tempCount++);
+                        out.setLabel(tempCount++);
                     } else {
                         BrUser brUser5 = new BrUser(ifFalse);
                         currentUser.addUser(brUser5);
@@ -625,6 +625,9 @@ public class Visitor {
                     nextStmt.setLabel(tempCount++);
                     currentUser = nextStmt;
                     currentFuncDefUser.addUser(currentUser);
+                    if (forStmt2 == null) {
+                        forStmt2Block = toCond;
+                    }
                     if (stmtFor.getChildren().size() == 1
                             && stmtFor.getChildren().get(0) instanceof GrammarUnit block
                             && block.getType() == GrammarUnit.GrammarUnitType.Block) {
@@ -641,8 +644,6 @@ public class Visitor {
                         currentUser = forStmt2Block;
                         currentFuncDefUser.addUser(currentUser);
                         ForStmt(forStmt2);
-                    } else {
-                        forStmt2Block = toCond;
                     }
                     BrUser brUser3 = new BrUser(toCond);
                     currentUser.addUser(brUser3);
@@ -1170,7 +1171,7 @@ public class Visitor {
                     if (unit.getChildren().size() == 1) {
                         return calNode(unit.getChildren().get(0));
                     } else if (unit.getChildren().size() == 2) {
-                        String op = ((TerminalSymbol) unit.getChildren().get(0)).getToken().value;
+                        String op = ((TerminalSymbol) unit.getChildren().get(0).getChildren().get(0)).getToken().value;
                         IntConstValue value = calNode(unit.getChildren().get(1));
                         assert value != null;
                         if (op.equals("-")) {

@@ -105,6 +105,9 @@ public class TwoDimensionArrayValue extends SymbolValue {
                 }
             }
             sb.append("]");
+            if (i != dim1 - 1) {
+                sb.append(", ");
+            }
         }
         sb.append("]");
         return sb.toString();

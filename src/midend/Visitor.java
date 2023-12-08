@@ -555,6 +555,8 @@ public class Visitor {
                         } else {
                             Stmt(children.get(6));
                         }
+                        BrUser brUser2 = new BrUser(outBasicBlock);
+                        currentUser.addUser(brUser2);
                         currentUser = outBasicBlock;
                         currentFuncDefUser.addUser(currentUser);
                         outBasicBlock.setLabel(tempCount++);

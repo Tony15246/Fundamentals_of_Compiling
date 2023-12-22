@@ -1,8 +1,8 @@
 package midend;
 
-import frontend.GrammarUnit;
-import frontend.Node;
-import frontend.TerminalSymbol;
+import frontend.parse.GrammarUnit;
+import frontend.parse.Node;
+import frontend.parse.TerminalSymbol;
 import midend.value.*;
 import midend.value.user.*;
 

@@ -9,12 +9,12 @@ import frontend.parse.TerminalSymbol;
 
 import java.util.ArrayList;
 
-public class Visitor {
+public class ErrorVisitor {
     private final Node root;
     private SymbolTable rootTable;
     private SymbolTable currentTable;
 
-    public Visitor(Node root) {
+    public ErrorVisitor(Node root) {
         this.root = root;
     }
 
@@ -587,6 +587,11 @@ public class Visitor {
                             }
                             break;
                     }
+                }
+            } else if (children.size() == 3) {
+                if (!funcSymbol.getParams().isEmpty()) {
+                    Logger.getLogger().addError(new Error(ident.getToken().lineNum, "d"));
+                    return dim;
                 }
             }
             if (funcSymbol.getRetype() == 1) {

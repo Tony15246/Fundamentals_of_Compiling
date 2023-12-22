@@ -29,4 +29,8 @@ public class Logger {
         }
         fw.flush();
     }
+
+    public boolean hasError() {
+        return !errors.isEmpty();
+    }
 }

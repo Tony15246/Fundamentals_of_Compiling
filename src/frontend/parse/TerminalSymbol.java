@@ -1,4 +1,6 @@
-package frontend;
+package frontend.parse;
+
+import frontend.Lexer;
 
 import java.util.ArrayList;
 
@@ -30,6 +32,10 @@ public class TerminalSymbol implements Node {
 
     public Lexer.Token getToken() {
         return this.token;
+    }
+
+    public void setCorrect(Boolean correct) {
+        this.correct = correct;
     }
 
     @Override
